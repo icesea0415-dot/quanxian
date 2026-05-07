@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>审批流程配置 - 数智门户</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-bg: #eff6ff;
+            --bg: #f5f7fa;
+            --surface: #ffffff;
+            --border: #e5e7eb;
+            --border-light: #f3f4f6;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --success: #10b981;
+            --success-bg: #ecfdf5;
+            --danger: #ef4444;
+            --danger-bg: #fef2f2;
+            --warning: #f59e0b;
+            --warning-bg: #fef3c7;
+            --purple: #8b5cf6;
+            --purple-bg: #f5f3ff;
+            --blue: #3b82f6;
+            --blue-bg: #eff6ff;
+            --cyan: #06b6d4;
+            --cyan-bg: #ecfeff;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+            --transition: all 0.2s;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; background: var(--bg); min-height: 100vh; }
+        .page-container { display: flex; min-height: 100vh; }
+        .header {
+            height: 56px; background: var(--surface); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+        }
+        .logo { display: flex; align-items: center; font-size: 17px; font-weight: 700; color: var(--text-primary); text-decoration: none; }
+        .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius: 6px; margin-right: 10px; display: flex; align-items: center; justify-content: center; color: #fff; }
+        .nav-menu { display: flex; gap: 2px; background: rgba(0,0,0,0.04); padding: 4px; border-radius: 10px; }
+        .nav-item { padding: 8px 18px; border-radius: 8px; font-size: 15px; font-weight: 600; color: var(--text-secondary); text-decoration: none; }
+        .nav-item:hover { color: var(--text-primary); }
+        .nav-item.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow); }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .user-info { display: flex; align-items: center; gap: 10px; padding: 5px 12px 5px 5px; }
+        .user-avatar { width: 28px; height: 28px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 600; }
+        .sidebar { width: 220px; background: var(--surface); border-right: 1px solid var(--border); position: fixed; top: 56px; left: 0; bottom: 0; padding: 16px 12px; }
+        .sidebar-group { margin-bottom: 16px; }
+        .sidebar-group-title { padding: 8px 12px; font-size: 11px; color: var(--text-muted); font-weight: 600; }
+        .sidebar-item { display: flex; align-items: center; padding: 9px 12px; font-size: 13.5px; font-weight: 500; color: var(--text-secondary); text-decoration: none; border-radius: var(--radius-sm); gap: 10px; transition: var(--transition); }
+        .sidebar-item:hover { background: var(--border-light); }
+        .sidebar-item.active { background: var(--primary-bg); color: var(--primary); }
+        .sidebar-item .icon { width: 20px; height: 20px; }
+        .sidebar-item .icon svg { width: 18px; height: 18px; }
+        .main-content { flex: 1; margin-left: 220px; padding: 80px 24px 24px; }
+
+        /* 双栏布局 */
+        .config-layout { display: flex; gap: 24px; }
+        .app-list-panel { width: 280px; }
+        .flow-config-panel { flex: 1; }
+
+        .page-header { display: flex; justify-content: space-between; margin-bottom: 24px; }
+        .page-title { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+        .page-breadcrumb { font-size: 13px; color: var(--text-muted); }
+        .page-breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+        .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 6px; transition: var(--transition); }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+        /* 应用列表 */
+        .app-list-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 16px;
+        }
+        .app-list-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .app-list-title svg { color: var(--primary); }
+        .app-tree { font-size: 13px; }
+        .app-tree-item { padding: 10px 12px; border-radius: var(--radius-sm); cursor: pointer; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; transition: var(--transition); }
+        .app-tree-item:hover { background: var(--border-light); }
+        .app-tree-item.active { background: var(--primary-bg); color: var(--primary); }
+        .app-tree-item .app-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: #fff; }
+        .app-tree-item .app-info { flex: 1; }
+        .app-tree-item .app-name { font-weight: 500; }
+        .app-tree-item .app-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+        .app-tree-item .flow-count { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--bg); color: var(--text-muted); }
+
+        /* 流程配置面板 */
+        .config-panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .config-panel-title { font-size: 16px; font-weight: 600; }
+        .config-panel-desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+        /* 流程匹配规则说明 */
+        .match-rule-card {
+            background: var(--cyan-bg);
+            border: 1px solid var(--cyan);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            margin-bottom: 20px;
+        }
+        .match-rule-title { font-size: 13px; font-weight: 600; color: var(--cyan); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .match-rule-content { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+        .match-rule-content .highlight { color: var(--cyan); font-weight: 500; }
+
+        /* 流程卡片 */
+        .flow-section { margin-bottom: 24px; }
+        .flow-section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .flow-section-badge {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            display: flex;
+            align-items: center; gap: 6px;
+        }
+        .flow-section-badge.app { background: var(--primary-bg); color: var(--primary); }
+        .flow-section-badge.product { background: var(--purple-bg); color: var(--purple); }
+        .flow-section-badge.role { background: var(--success-bg); color: var(--success); }
+        .flow-section-title { font-size: 14px; font-weight: 600; }
+        .flow-section-scope { font-size: 12px; color: var(--text-muted); }
+
+        .flow-visual-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 20px;
+        }
+        .flow-visual-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border-light); }
+        .flow-visual-title { font-size: 15px; font-weight: 600; }
+        .flow-visual-actions { display: flex; gap: 8px; }
+        .flow-action-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+        .flow-action-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .flow-action-btn.edit { background: var(--primary-bg); color: var(--primary); border-color: transparent; }
+        .flow-action-btn.delete { background: var(--danger-bg); color: var(--danger); border-color: transparent; }
+
+        /* 流程图可视化 */
+        .flow-diagram { display: flex; align-items: center; gap: 16px; padding: 16px 0; }
+        .flow-node {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 14px 20px;
+            min-width: 160px;
+            position: relative;
+            transition: var(--transition);
+        }
+        .flow-node:hover { border-color: var(--primary); box-shadow: var(--shadow-md); }
+        .flow-node-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .flow-node-order {
+            width: 22px; height: 22px;
+            background: var(--primary);
+            color: #fff;
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 600;
+        }
+        .flow-node-name { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+        .flow-node-approvers { display: flex; flex-wrap: wrap; gap: 6px; }
+        .flow-approver {
+            padding: 4px 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex; align-items: center; gap: 4px;
+        }
+        .flow-approver-avatar { width: 16px; height: 16px; border-radius: 4px; background: var(--primary-bg); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--primary); }
+        .flow-connector {
+            width: 40px;
+            height: 2px;
+            background: var(--border);
+            position: relative;
+        }
+        .flow-connector::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -4px;
+            border: 6px solid transparent;
+            border-left-color: var(--border);
+        }
+        .flow-connector-arrow { color: var(--text-muted); font-size: 18px; }
+
+        /* 新增流程按钮 */
+        .add-flow-section { margin-top: 24px; }
+        .add-flow-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--surface);
+            border: 1px dashed var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+            transition: var(--transition);
+        }
+        .add-flow-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-bg); }
+
+        /* 配置抽屉 */
+        .drawer { position: fixed; top: 0; right: -680px; width: 680px; height: 100vh; background: var(--surface); box-shadow: -4px 0 20px rgba(0,0,0,0.1); z-index: 200; transition: right 0.3s; }
+        .drawer.open { right: 0; }
+        .drawer-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 150; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .drawer-overlay.open { opacity: 1; visibility: visible; }
+        .drawer-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .drawer-title { font-size: 16px; font-weight: 600; }
+        .drawer-close { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); }
+        .drawer-close:hover { background: var(--border-light); }
+        .drawer-body { padding: 20px; overflow-y: auto; height: calc(100vh - 130px); }
+
+        .form-group { margin-bottom: 16px; }
+        .form-label { font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; display: block; }
+        .form-label.required::after { content: '*'; color: var(--danger); margin-left: 4px; }
+        .form-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        .form-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+        .form-input:focus { outline: none; border-color: var(--primary); }
+        .form-select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--surface); cursor: pointer; }
+        .form-select:focus { outline: none; border-color: var(--primary); }
+        .form-textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; resize: vertical; min-height: 80px; }
+        .form-textarea:focus { outline: none; border-color: var(--primary); }
+        .form-row { display: flex; gap: 12px; }
+        .form-row .form-group { flex: 1; }
+
+        /* 审批人搜索选择 */
+        .approver-search-wrapper { position: relative; }
+        .approver-search-input {
+            width: 100%;
+            padding: 10px 12px 10px 36px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--surface);
+        }
+        .approver-search-input:focus { outline: none; border-color: var(--primary); }
+        .approver-search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+        .selected-approvers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+            min-height: 30px;
+        }
+        .selected-approver-tag {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            background: var(--primary-bg);
+            border: 1px solid var(--primary);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--primary);
+        }
+        .selected-approver-tag .remove-btn {
+            cursor: pointer;
+            opacity: 0.6;
+            transition: var(--transition);
+        }
+        .selected-approver-tag .remove-btn:hover { opacity: 1; }
+        .approver-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-top: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+            display: none;
+            box-shadow: var(--shadow-md);
+        }
+        .approver-dropdown.show { display: block; }
+        .approver-dropdown-item {
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .approver-dropdown-item:hover { background: var(--primary-bg); }
+        .approver-dropdown-item.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: var(--bg);
+        }
+        .approver-dropdown-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: var(--primary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* 节点配置 */
+        .node-config-card {
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            margin-bottom: 12px;
+            background: var(--bg);
+        }
+        .node-config-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .node-config-title { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+        .node-config-title .order-badge {
+            width: 22px; height: 22px;
+            background: var(--primary); color: #fff;
+            border-radius: 6px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 600;
+        }
+        .node-config-remove { color: var(--danger); font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .add-node-btn { padding: 12px 16px; background: var(--surface); border: 1px dashed var(--border); border-radius: 6px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--text-muted); width: 100%; margin-top: 12px; }
+        .add-node-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+        .drawer-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; }
+
+        /* 流程生效说明 */
+        .effect-note {
+            background: var(--success-bg);
+            border: 1px solid var(--success);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            margin-top: 16px;
+        }
+        .effect-note-title { font-size: 13px; font-weight: 600; color: var(--success); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .effect-note-content { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+        /* 交互说明弹窗 */
+        .help-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 300; opacity: 0; visibility: hidden; transition: var(--transition); }
+        .help-modal.open { opacity: 1; visibility: visible; }
+        .help-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; max-width: 90vw; max-height: 80vh; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-md); overflow: hidden; }
+        .help-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .help-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+        .help-close { width: 32px; height: 32px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: var(--transition); }
+        .help-close:hover { background: var(--bg); }
+        .help-close svg { width: 18px; height: 18px; color: var(--text-secondary); }
+        .help-body { padding: 20px; max-height: calc(80vh - 60px); overflow-y: auto; font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+        .help-body h4 { font-size: 15px; font-weight: 600; color: var(--text-primary); margin: 16px 0 8px 0; }
+        .help-body h4:first-child { margin-top: 0; }
+        .help-body ul { margin: 8px 0; padding-left: 20px; }
+        .help-body li { margin: 6px 0; }
+        .help-body .sub-list { padding-left: 16px; list-style-type: circle; }
+        .help-btn { padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; transition: var(--transition); }
+        .help-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-bg); }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="index.html" class="logo"><div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>数智门户</a>
+        <nav class="nav-menu">
+            <a href="https://dcpadmin.changyan.com/" class="nav-item" target="_blank">数据采集</a>
+            <div class="nav-item">指标中心</div>
+            <a href="index.html" class="nav-item">数据看板</a>
+            <div class="nav-item active">权限中心</div>
+        </nav>
+        <div class="header-right"><div class="user-info"><div class="user-avatar">管</div><span class="user-name">管理员</span></div></div>
+    </header>
+
+    <div class="page-container">
+        <aside class="sidebar">
+            <div class="sidebar-group">
+                <div class="sidebar-group-title">我的权限</div>
+                <a href="my-permission.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>我的权限</a>
+                <a href="permission-apply.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/></svg></span>权限申请</a>
+                <a href="application-list.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></span>申请记录</a>
+            </div>
+            <div class="sidebar-group">
+                <div class="sidebar-group-title">审批管理</div>
+                <a href="approval-manage.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg></span>审批管理</a>
+                <a href="approval-flow-config.html" class="sidebar-item active"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>审批流程配置</a>
+            </div>
+            <div class="sidebar-group">
+                <div class="sidebar-group-title">系统管理</div>
+                <a href="app-product-line.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg></span>应用与产品线管理</a>
+                <a href="user-permission-manage.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>用户权限管理</a>
+                <a href="operation-log.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></span>操作日志</a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">审批流程配置</h1>
+                    <div class="page-breadcrumb"><a href="index.html">首页</a> / <a href="index.html">权限中心</a> / <span>审批流程配置</span></div>
+                </div>
+                <button class="help-btn" onclick="openHelpModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    交互说明
+                </button>
+            </div>
+
+            <div class="config-layout">
+                <!-- 左侧应用列表 -->
+                <div class="app-list-panel">
+                    <div class="app-list-card">
+                        <div class="app-list-title">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                            应用列表
+                        </div>
+                        <div class="app-tree">
+                            <div class="app-tree-item active" onclick="selectApp('learning')">
+                                <div class="app-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">学</div>
+                                <div class="app-info">
+                                    <div class="app-name">学习教育业务线</div>
+                                </div>
+                                <div class="flow-count">3个流程</div>
+                            </div>
+                            <div class="app-tree-item" onclick="selectApp('public')">
+                                <div class="app-icon" style="background: linear-gradient(135deg, #10b981, #059669);">公</div>
+                                <div class="app-info">
+                                    <div class="app-name">公共数据平台</div>
+                                </div>
+                                <div class="flow-count">2个流程</div>
+                            </div>
+                            <div class="app-tree-item" onclick="selectApp('edu')">
+                                <div class="app-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">教</div>
+                                <div class="app-info">
+                                    <div class="app-name">教育服务线</div>
+                                </div>
+                                <div class="flow-count">1个流程</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右侧流程配置面板 -->
+                <div class="flow-config-panel">
+                    <div class="config-panel-header">
+                        <div>
+                            <div class="config-panel-title">学习教育业务线 - 审批流程配置</div>
+                        </div>
+                        <button class="btn btn-primary" onclick="openDrawer()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增审批流程</button>
+                    </div>
+
+                    <!-- 流程匹配规则说明 -->
+                    <div class="match-rule-card">
+                        <div class="match-rule-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                            流程匹配规则
+                        </div>
+                        <div class="match-rule-content">
+                            系统按照<span class="highlight">角色级 → 产品线级 → 应用级</span>的顺序匹配审批流程。优先使用最细粒度的流程配置，若无匹配则逐级向上查找，最终使用应用默认流程。
+                        </div>
+                    </div>
+
+                    <!-- 应用级默认流程 -->
+                    <div class="flow-section">
+                        <div class="flow-section-header">
+                            <div class="flow-section-badge app">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg>
+                                应用级
+                            </div>
+                            <div class="flow-section-title">应用默认审批流程</div>
+                            <div class="flow-section-scope">适用范围：整个应用所有角色</div>
+                        </div>
+                        <div class="flow-visual-card">
+                            <div class="flow-visual-header">
+                                <div class="flow-visual-title">学习教育业务线默认流程</div>
+                                <div class="flow-visual-actions">
+                                    <button class="flow-action-btn edit" onclick="editFlow('app-default')">编辑</button>
+                                </div>
+                            </div>
+                            <div class="flow-diagram">
+                                <div class="flow-node">
+                                    <div class="flow-node-header">
+                                        <div class="flow-node-order">1</div>
+                                        <div class="flow-node-name">业务Owner审批</div>
+                                    </div>
+                                    <div class="flow-node-approvers">
+                                        <div class="flow-approver"><div class="flow-approver-avatar">李</div>李四</div>
+                                    </div>
+                                </div>
+                                <div class="flow-connector-arrow">→</div>
+                                <div class="flow-node">
+                                    <div class="flow-node-header">
+                                        <div class="flow-node-order">2</div>
+                                        <div class="flow-node-name">数据Owner审批</div>
+                                    </div>
+                                    <div class="flow-node-approvers">
+                                        <div class="flow-approver"><div class="flow-approver-avatar">王</div>王五</div>
+                                        <div class="flow-approver"><div class="flow-approver-avatar">赵</div>赵六</div>
+                                    </div>
+                                </div>
+                                <div class="flow-connector-arrow">→</div>
+                                <div class="flow-node">
+                                    <div class="flow-node-header">
+                                        <div class="flow-node-order">3</div>
+                                        <div class="flow-node-name">系统管理员审批</div>
+                                    </div>
+                                    <div class="flow-node-approvers">
+                                        <div class="flow-approver"><div class="flow-approver-avatar">管</div>管理员组</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 产品线级流程 -->
+                    <div class="flow-section">
+                        <div class="flow-section-header">
+                            <div class="flow-section-badge product">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 0-2 2H4a2 2 0 0 0-2-2"/><path d="M22 5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2"/><line x1="2" y1="12" x2="22" y2="12"/></svg>
+                                产品线级
+                            </div>
+                            <div class="flow-section-title">白泽 - 学习业务线审批流程</div>
+                            <div class="flow-section-scope">适用范围：白泽平台学习业务线所有角色</div>
+                        </div>
+                        <div class="flow-visual-card">
+                            <div class="flow-visual-header">
+                                <div class="flow-visual-title">白泽学习业务线流程</div>
+                                <div class="flow-visual-actions">
+                                    <button class="flow-action-btn edit" onclick="editFlow('product-baize-learning')">编辑</button>
+                                    <button class="flow-action-btn delete" onclick="deleteFlow('product-baize-learning')">删除</button>
+                                </div>
+                            </div>
+                            <div class="flow-diagram">
+                                <div class="flow-node">
+                                    <div class="flow-node-header">
+                                        <div class="flow-node-order">1</div>
+                                        <div class="flow-node-name">产品线管理员审批</div>
+                                    </div>
+                                    <div class="flow-node-approvers">
+                                        <div class="flow-approver"><div class="flow-approver-avatar">张</div>张三</div>
+                                    </div>
+                                </div>
+                                <div class="flow-connector-arrow">→</div>
+                                <div class="flow-node">
+                                    <div class="flow-node-header">
+                                        <div class="flow-node-order">2</div>
+                                        <div class="flow-node-name">数据Owner审批</div>
+                                    </div>
+                                    <div class="flow-node-approvers">
+                                        <div class="flow-approver"><div class="flow-approver-avatar">王</div>王五</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 角色级流程 -->
+                    <div class="flow-section">
+                        <div class="flow-section-header">
+                            <div class="flow-section-badge role">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                角色级
+                            </div>
+                            <div class="flow-section-title">白泽 - Admin角色审批流程</div>
+                            <div class="flow-section-scope">适用范围：白泽平台学习业务线 Admin 角色</div>
+                        </div>
+                        <div class="flow-visual-card">
+                            <div class="flow-visual-header">
+                                <div class="flow-visual-title">Admin角色专属流程</div>
+                                <div class="flow-visual-actions">
+                                    <button class="flow-action-btn edit" onclick="editFlow('role-baize-admin')">编辑</button>
+                                    <button class="flow-action-btn delete" onclick="deleteFlow('role-baize-admin')">删除</button>
+                                </div>
+                            </div>
+                            <div class="flow-diagram">
+                                <div class="flow-node">
+                                    <div class="flow-node-header">
+                                        <div class="flow-node-order">1</div>
+                                        <div class="flow-node-name">业务Owner审批</div>
+                                    </div>
+                                    <div class="flow-node-approvers">
+                                        <div class="flow-approver"><div class="flow-approver-avatar">李</div>李四</div>
+                                    </div>
+                                </div>
+                                <div class="flow-connector-arrow">→</div>
+                                <div class="flow-node">
+                                    <div class="flow-node-header">
+                                        <div class="flow-node-order">2</div>
+                                        <div class="flow-node-name">数据Owner审批</div>
+                                    </div>
+                                    <div class="flow-node-approvers">
+                                        <div class="flow-approver"><div class="flow-approver-avatar">王</div>王五</div>
+                                    </div>
+                                </div>
+                                <div class="flow-connector-arrow">→</div>
+                                <div class="flow-node">
+                                    <div class="flow-node-header">
+                                        <div class="flow-node-order">3</div>
+                                        <div class="flow-node-name">系统管理员审批</div>
+                                    </div>
+                                    <div class="flow-node-approvers">
+                                        <div class="flow-approver"><div class="flow-approver-avatar">管</div>管理员组</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 新增流程入口 -->
+                    <div class="add-flow-section">
+                        <button class="add-flow-btn" onclick="openDrawer()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            新增审批流程（应用级/产品线级/角色级）
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 配置抽屉 -->
+    <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+    <div class="drawer" id="configDrawer">
+        <div class="drawer-header">
+            <span class="drawer-title" id="drawerTitle">新增审批流程</span>
+            <div class="drawer-close" onclick="closeDrawer()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+        </div>
+        <div class="drawer-body">
+            <div class="form-group">
+                <label class="form-label required">选择应用</label>
+                <select class="form-select" id="selectApp" onchange="onAppChange()">
+                    <option value="">请选择应用</option>
+                    <option value="learning">学习教育业务线</option>
+                    <option value="public">公共数据平台</option>
+                    <option value="edu">教育服务线</option>
+                </select>
+                <div class="form-hint">审批流程必须属于某个应用</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">流程名称</label>
+                <input class="form-input" type="text" placeholder="请输入审批流程名称" id="flowName">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">流程级别</label>
+                <select class="form-select" id="flowLevel" onchange="updateFormByLevel()">
+                    <option value="app">应用级（整个应用共用）</option>
+                    <option value="product">产品线级（指定平台+产品线）</option>
+                    <option value="role">角色级（指定平台+产品线+角色）</option>
+                </select>
+                <div class="form-hint">优先级：角色级 > 产品线级 > 应用级</div>
+            </div>
+
+            <div class="form-row" id="platformProductRow" style="display: none;">
+                <div class="form-group">
+                    <label class="form-label">选择平台</label>
+                    <select class="form-select" id="selectPlatform">
+                        <option value="">请选择平台</option>
+                        <option value="baize">白泽</option>
+                        <option value="dashboard">数据看板</option>
+                        <option value="indicator">指标中心</option>
+                        <option value="portal">数智门户</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">选择产品线</label>
+                    <select class="form-select" id="selectProductLine">
+                        <option value="">请选择产品线</option>
+                        <option value="learning">学习业务线</option>
+                        <option value="public">公共报表</option>
+                        <option value="education">教育业务线</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" id="roleSelectRow" style="display: none;">
+                <label class="form-label">选择角色</label>
+                <select class="form-select" id="selectRole">
+                    <option value="">请选择角色</option>
+                    <option value="viewer">Viewer（查看者）</option>
+                    <option value="editor">Editor（编辑者）</option>
+                    <option value="analyst">Data Analyst（分析师）</option>
+                    <option value="admin">Admin（管理员）</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">使用范围说明</label>
+                <textarea class="form-textarea" id="scopeNote" placeholder="请输入该审批流程的使用范围说明（可选）"></textarea>
+                <div class="form-hint">用于备注说明该流程的适用场景、特殊规则等</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">审批节点配置</label>
+                <div class="form-hint" style="margin-bottom: 12px;">每个节点可配置多个审批人，任一人审批即可通过</div>
+
+                <div id="nodeConfigList">
+                    <div class="node-config-card" data-node-id="1">
+                        <div class="node-config-header">
+                            <span class="node-config-title"><span class="order-badge">1</span>节点 1</span>
+                            <span class="node-config-remove" onclick="removeNode(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>删除节点</span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">节点名称</label>
+                            <input class="form-input node-name-input" type="text" value="业务Owner审批" placeholder="如：业务Owner审批">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">审批人</label>
+                            <div class="approver-search-wrapper">
+                                <svg class="approver-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                <input class="approver-search-input" type="text" placeholder="搜索审批人姓名或账号" onfocus="showApproverDropdown(this)" onblur="hideApproverDropdown(this)" oninput="filterApprover(this)">
+                                <div class="approver-dropdown" id="dropdown-1">
+                                    <div class="approver-dropdown-item" onclick="selectApprover(this, 'dropdown-1', 1)">
+                                        <div class="approver-dropdown-avatar">李</div>
+                                        <span>李四</span>
+                                        <span style="color: var(--text-muted); font-size: 12px; margin-left: 8px;">lisi@company.com</span>
+                                    </div>
+                                    <div class="approver-dropdown-item" onclick="selectApprover(this, 'dropdown-1', 1)">
+                                        <div class="approver-dropdown-avatar">王</div>
+                                        <span>王五</span>
+                                        <span style="color: var(--text-muted); font-size: 12px; margin-left: 8px;">wangwu@company.com</span>
+                                    </div>
+                                    <div class="approver-dropdown-item" onclick="selectApprover(this, 'dropdown-1', 1)">
+                                        <div class="approver-dropdown-avatar">赵</div>
+                                        <span>赵六</span>
+                                        <span style="color: var(--text-muted); font-size: 12px; margin-left: 8px;">zhaoliu@company.com</span>
+                                    </div>
+                                    <div class="approver-dropdown-item" onclick="selectApprover(this, 'dropdown-1', 1)">
+                                        <div class="approver-dropdown-avatar">张</div>
+                                        <span>张三</span>
+                                        <span style="color: var(--text-muted); font-size: 12px; margin-left: 8px;">zhangsan@company.com</span>
+                                    </div>
+                                    <div class="approver-dropdown-item" onclick="selectApprover(this, 'dropdown-1', 1)">
+                                        <div class="approver-dropdown-avatar">管</div>
+                                        <span>管理员组</span>
+                                        <span style="color: var(--text-muted); font-size: 12px; margin-left: 8px;">admin@company.com</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="selected-approvers" id="selected-1">
+                                <div class="selected-approver-tag" data-user-id="lisi">
+                                    <div class="approver-dropdown-avatar">李</div>
+                                    <span>李四</span>
+                                    <span class="remove-btn" onclick="removeSelectedApprover(this, 1, 'lisi')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="node-config-card" data-node-id="2">
+                        <div class="node-config-header">
+                            <span class="node-config-title"><span class="order-badge">2</span>节点 2</span>
+                            <span class="node-config-remove" onclick="removeNode(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>删除节点</span>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">节点名称</label>
+                            <input class="form-input node-name-input" type="text" value="数据Owner审批" placeholder="如：数据Owner审批">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">审批人</label>
+                            <div class="approver-search-wrapper">
+                                <svg class="approver-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                                <input class="approver-search-input" type="text" placeholder="搜索审批人姓名或账号" onfocus="showApproverDropdown(this)" onblur="hideApproverDropdown(this)" oninput="filterApprover(this)">
+                                <div class="approver-dropdown" id="dropdown-2">
+                                    <div class="approver-dropdown-item" onclick="selectApprover(this, 'dropdown-2', 2)">
+                                        <div class="approver-dropdown-avatar">李</div>
+                                        <span>李四</span>
+                                        <span style="color: var(--text-muted); font-size: 12px; margin-left: 8px;">lisi@company.com</span>
+                                    </div>
+                                    <div class="approver-dropdown-item" onclick="selectApprover(this, 'dropdown-2', 2)">
+                                        <div class="approver-dropdown-avatar">王</div>
+                                        <span>王五</span>
+                                        <span style="color: var(--text-muted); font-size: 12px; margin-left: 8px;">wangwu@company.com</span>
+                                    </div>
+                                    <div class="approver-dropdown-item" onclick="selectApprover(this, 'dropdown-2', 2)">
+                                        <div class="approver-dropdown-avatar">赵</div>
+                                        <span>赵六</span>
+                                        <span style="color: var(--text-muted); font-size: 12px; margin-left: 8px;">zhaoliu@company.com</span>
+                                    </div>
+                                    <div class="approver-dropdown-item" onclick="selectApprover(this, 'dropdown-2', 2)">
+                                        <div class="approver-dropdown-avatar">张</div>
+                                        <span>张三</span>
+                                        <span style="color: var(--text-muted); font-size: 12px; margin-left: 8px;">zhangsan@company.com</span>
+                                    </div>
+                                    <div class="approver-dropdown-item" onclick="selectApprover(this, 'dropdown-2', 2)">
+                                        <div class="approver-dropdown-avatar">管</div>
+                                        <span>管理员组</span>
+                                        <span style="color: var(--text-muted); font-size: 12px; margin-left: 8px;">admin@company.com</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="selected-approvers" id="selected-2">
+                                <div class="selected-approver-tag" data-user-id="wangwu">
+                                    <div class="approver-dropdown-avatar">王</div>
+                                    <span>王五</span>
+                                    <span class="remove-btn" onclick="removeSelectedApprover(this, 2, 'wangwu')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+                                </div>
+                                <div class="selected-approver-tag" data-user-id="zhaoliu">
+                                    <div class="approver-dropdown-avatar">赵</div>
+                                    <span>赵六</span>
+                                    <span class="remove-btn" onclick="removeSelectedApprover(this, 2, 'zhaoliu')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="add-node-btn" onclick="addNode()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增审批节点</button>
+            </div>
+
+            <!-- 流程生效说明 -->
+            <div class="effect-note">
+                <div class="effect-note-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                    流程生效说明
+                </div>
+                <div class="effect-note-content">
+                    审批流程编辑保存后立即生效，不会对正在审批流程中的权限申请产生影响，仅对下一次新建的权限申请生效。
+                </div>
+            </div>
+        </div>
+        <div class="drawer-footer">
+            <button class="btn" style="background: var(--bg); border: 1px solid var(--border); color: var(--text-secondary);" onclick="closeDrawer()">取消</button>
+            <button class="btn btn-primary" onclick="saveFlow()">保存</button>
+        </div>
+    </div>
+
+    <!-- 交互说明弹窗 -->
+    <div class="help-modal" id="helpModal">
+        <div class="help-content">
+            <div class="help-header">
+                <div class="help-title">审批流程配置 - 交互说明</div>
+                <button class="help-close" onclick="closeHelpModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+            <div class="help-body">
+                <h4>页面结构</h4>
+                <ul>
+                    <li>左侧显示应用列表，点击应用切换显示对应的审批流程配置</li>
+                    <li>右侧显示选中应用的审批流程配置详情</li>
+                    <li>流程按照"应用级 → 产品线级 → 角色级"的层级展示</li>
+                </ul>
+                <h4>流程匹配规则</h4>
+                <ul>
+                    <li>系统按照<strong>角色级 → 产品线级 → 应用级</strong>的顺序匹配审批流程</li>
+                    <li>优先使用最细粒度的流程配置</li>
+                    <li>若无匹配则逐级向上查找，最终使用应用默认流程</li>
+                </ul>
+                <h4>新增审批流程</h4>
+                <ul>
+                    <li>点击右上角"新增审批流程"按钮打开侧滑抽屉</li>
+                    <li>选择流程级别：应用级、产品线级、角色级</li>
+                    <li>根据级别选择对应的适用范围（产品线、角色）</li>
+                    <li>配置审批节点：添加审批人，每个节点可配置多人，任一人审批即可通过</li>
+                    <li>支持搜索选择审批人，可添加多个审批节点</li>
+                </ul>
+                <h4>编辑流程</h4>
+                <ul>
+                    <li>点击流程卡片右侧"编辑"按钮打开编辑抽屉</li>
+                    <li>可修改流程名称、审批节点配置</li>
+                    <li class="sub-list">编辑时显示已有的流程配置信息</li>
+                </ul>
+                <h4>删除流程</h4>
+                <ul>
+                    <li>点击流程卡片右侧"删除"按钮</li>
+                    <li>确认删除后，该范围将使用上级流程配置</li>
+                    <li class="sub-list">删除角色级流程后，将使用产品线级或应用级流程</li>
+                </ul>
+                <h4>流程节点操作</h4>
+                <ul>
+                    <li>点击"添加审批节点"增加新的审批环节</li>
+                    <li>点击节点右侧删除图标移除该节点</li>
+                    <li>节点顺序即为审批顺序</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openHelpModal() {
+            document.getElementById('helpModal').classList.add('open');
+        }
+        function closeHelpModal() {
+            document.getElementById('helpModal').classList.remove('open');
+        }
+        let nodeCount = 2;
+        const allApproverData = [
+            { id: 'lisi', name: '李四', avatar: '李', email: 'lisi@company.com' },
+            { id: 'wangwu', name: '王五', avatar: '王', email: 'wangwu@company.com' },
+            { id: 'zhaoliu', name: '赵六', avatar: '赵', email: 'zhaoliu@company.com' },
+            { id: 'zhangsan', name: '张三', avatar: '张', email: 'zhangsan@company.com' },
+            { id: 'admin', name: '管理员组', avatar: '管', email: 'admin@company.com' }
+        ];
+
+        function selectApp(appId) {
+            document.querySelectorAll('.app-tree-item').forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            // 可根据appId加载不同的流程配置
+        }
+
+        function onAppChange() {
+            const appId = document.getElementById('selectApp').value;
+            // 可以根据选择的应用动态更新平台和产品线选项
+        }
+
+        function openDrawer() {
+            document.getElementById('drawerOverlay').classList.add('open');
+            document.getElementById('configDrawer').classList.add('open');
+            document.getElementById('drawerTitle').textContent = '新增审批流程';
+        }
+
+        function closeDrawer() {
+            document.getElementById('drawerOverlay').classList.remove('open');
+            document.getElementById('configDrawer').classList.remove('open');
+        }
+
+        function editFlow(flowId) {
+            openDrawer();
+            document.getElementById('drawerTitle').textContent = '编辑审批流程';
+            // 根据flowId加载对应流程数据
+        }
+
+        function deleteFlow(flowId) {
+            if (confirm('确认删除该审批流程？删除后该范围将使用上级流程配置。')) {
+                alert('已删除，该范围将使用上级流程配置');
+            }
+        }
+
+        function updateFormByLevel() {
+            const level = document.getElementById('flowLevel').value;
+            const platformProductRow = document.getElementById('platformProductRow');
+            const roleSelectRow = document.getElementById('roleSelectRow');
+
+            if (level === 'app') {
+                platformProductRow.style.display = 'none';
+                roleSelectRow.style.display = 'none';
+            } else if (level === 'product') {
+                platformProductRow.style.display = '';
+                roleSelectRow.style.display = 'none';
+            } else if (level === 'role') {
+                platformProductRow.style.display = '';
+                roleSelectRow.style.display = '';
+            }
+        }
+
+        // 审批人搜索选择功能
+        let dropdownTimeout = null;
+
+        function showApproverDropdown(input) {
+            clearTimeout(dropdownTimeout);
+            const wrapper = input.closest('.approver-search-wrapper');
+            const dropdown = wrapper.querySelector('.approver-dropdown');
+            dropdown.classList.add('show');
+        }
+
+        function hideApproverDropdown(input) {
+            dropdownTimeout = setTimeout(() => {
+                const wrapper = input.closest('.approver-search-wrapper');
+                const dropdown = wrapper.querySelector('.approver-dropdown');
+                dropdown.classList.remove('show');
+            }, 200);
+        }
+
+        function filterApprover(input) {
+            const keyword = input.value.toLowerCase();
+            const wrapper = input.closest('.approver-search-wrapper');
+            const dropdown = wrapper.querySelector('.approver-dropdown');
+            const items = dropdown.querySelectorAll('.approver-dropdown-item');
+
+            items.forEach(item => {
+                const name = item.querySelector('span').textContent.toLowerCase();
+                const email = item.querySelectorAll('span')[1] ? item.querySelectorAll('span')[1].textContent.toLowerCase() : '';
+                if (name.includes(keyword) || email.includes(keyword)) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function selectApprover(item, dropdownId, nodeIndex) {
+            const dropdown = document.getElementById(dropdownId);
+            const selectedContainer = document.getElementById('selected-' + nodeIndex);
+            const userId = item.querySelector('.approver-dropdown-avatar').textContent + '_' + item.querySelector('span').textContent;
+
+            // 检查是否已选择
+            const existingTags = selectedContainer.querySelectorAll('.selected-approver-tag');
+            let alreadySelected = false;
+            existingTags.forEach(tag => {
+                const tagUserId = tag.getAttribute('data-user-id');
+                if (tagUserId === userId) {
+                    alreadySelected = true;
+                }
+            });
+
+            if (alreadySelected) {
+                dropdown.classList.remove('show');
+                return;
+            }
+
+            // 添加选中标签
+            const avatar = item.querySelector('.approver-dropdown-avatar').textContent;
+            const name = item.querySelector('span').textContent;
+            const tagHtml = `
+                <div class="selected-approver-tag" data-user-id="${userId}">
+                    <div class="approver-dropdown-avatar">${avatar}</div>
+                    <span>${name}</span>
+                    <span class="remove-btn" onclick="removeSelectedApprover(this, ${nodeIndex}, '${userId}')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+                </div>
+            `;
+            selectedContainer.insertAdjacentHTML('beforeend', tagHtml);
+
+            // 标记下拉项为已选择（可选）
+            item.classList.add('disabled');
+
+            dropdown.classList.remove('show');
+        }
+
+        function removeSelectedApprover(removeBtn, nodeIndex, userId) {
+            const tag = removeBtn.closest('.selected-approver-tag');
+            tag.remove();
+
+            // 可选：恢复下拉项的可选状态
+            const dropdown = document.getElementById('dropdown-' + nodeIndex);
+            const items = dropdown.querySelectorAll('.approver-dropdown-item');
+            items.forEach(item => {
+                const itemUserId = item.querySelector('.approver-dropdown-avatar').textContent + '_' + item.querySelector('span').textContent;
+                if (itemUserId === userId) {
+                    item.classList.remove('disabled');
+                }
+            });
+        }
+
+        function addNode() {
+            nodeCount++;
+            const nodeHtml = `
+                <div class="node-config-card" data-node-id="${nodeCount}">
+                    <div class="node-config-header">
+                        <span class="node-config-title"><span class="order-badge">${nodeCount}</span>节点 ${nodeCount}</span>
+                        <span class="node-config-remove" onclick="removeNode(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>删除节点</span>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">节点名称</label>
+                        <input class="form-input node-name-input" type="text" placeholder="如：系统管理员审批">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">审批人</label>
+                        <div class="approver-search-wrapper">
+                            <svg class="approver-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                            <input class="approver-search-input" type="text" placeholder="搜索审批人姓名或账号" onfocus="showApproverDropdown(this)" onblur="hideApproverDropdown(this)" oninput="filterApprover(this)">
+                            <div class="approver-dropdown" id="dropdown-${nodeCount}">
+                                <div class="approver-dropdown-item" onclick="selectApprover(this, 'dropdown-${nodeCount}', ${nodeCount})">
+                                    <div class="approver-dropdown-avatar">李</div>
+                                    <span>李四</span>
+                                    <span style="color: var(--text-muted); font-size: 12px; margin-left: 8px;">lisi@company.com</span>
+                                </div>
+                                <div class="approver-dropdown-item" onclick="selectApprover(this, 'dropdown-${nodeCount}', ${nodeCount})">
+                                    <div class="approver-dropdown-avatar">王</div>
+                                    <span>王五</span>
+                                    <span style="color: var(--text-muted); font-size: 12px; margin-left: 8px;">wangwu@company.com</span>
+                                </div>
+                                <div class="approver-dropdown-item" onclick="selectApprover(this, 'dropdown-${nodeCount}', ${nodeCount})">
+                                    <div class="approver-dropdown-avatar">赵</div>
+                                    <span>赵六</span>
+                                    <span style="color: var(--text-muted); font-size: 12px; margin-left: 8px;">zhaoliu@company.com</span>
+                                </div>
+                                <div class="approver-dropdown-item" onclick="selectApprover(this, 'dropdown-${nodeCount}', ${nodeCount})">
+                                    <div class="approver-dropdown-avatar">张</div>
+                                    <span>张三</span>
+                                    <span style="color: var(--text-muted); font-size: 12px; margin-left: 8px;">zhangsan@company.com</span>
+                                </div>
+                                <div class="approver-dropdown-item" onclick="selectApprover(this, 'dropdown-${nodeCount}', ${nodeCount})">
+                                    <div class="approver-dropdown-avatar">管</div>
+                                    <span>管理员组</span>
+                                    <span style="color: var(--text-muted); font-size: 12px; margin-left: 8px;">admin@company.com</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="selected-approvers" id="selected-${nodeCount}"></div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('nodeConfigList').insertAdjacentHTML('beforeend', nodeHtml);
+        }
+
+        function removeNode(el) {
+            const card = el.closest('.node-config-card');
+            if (document.querySelectorAll('.node-config-card').length > 1) {
+                card.remove();
+                updateNodeOrders();
+            } else {
+                alert('至少需要保留一个审批节点');
+            }
+        }
+
+        function updateNodeOrders() {
+            const cards = document.querySelectorAll('.node-config-card');
+            cards.forEach((card, index) => {
+                const badge = card.querySelector('.order-badge');
+                badge.textContent = index + 1;
+                const title = card.querySelector('.node-config-title');
+                title.childNodes[1].textContent = '节点 ' + (index + 1);
+            });
+            nodeCount = cards.length;
+        }
+
+        function saveFlow() {
+            const selectApp = document.getElementById('selectApp').value;
+            if (!selectApp) {
+                alert('请选择应用');
+                return;
+            }
+            const flowName = document.getElementById('flowName').value;
+            if (!flowName) {
+                alert('请输入流程名称');
+                return;
+            }
+            alert('审批流程已保存，将立即生效（仅对新建的权限申请生效）');
+            closeDrawer();
+        }
+    </script>
+</body>
+</html>

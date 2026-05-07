@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>权限申请 - 数智门户</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-bg: #eff6ff;
+            --bg: #f5f7fa;
+            --surface: #ffffff;
+            --border: #e5e7eb;
+            --border-light: #f3f4f6;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --success: #10b981;
+            --success-bg: #ecfdf5;
+            --danger: #ef4444;
+            --danger-bg: #fef2f2;
+            --warning: #f59e0b;
+            --warning-bg: #fff7ed;
+            --purple: #8b5cf6;
+            --purple-bg: #f5f3ff;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            color: var(--text-primary);
+            background: var(--bg);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+        .page-container { display: flex; min-height: 100vh; }
+
+        /* 顶部导航 */
+        .header {
+            height: 56px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+        }
+        .logo { display: flex; align-items: center; font-size: 17px; font-weight: 700; color: var(--text-primary); text-decoration: none; }
+        .logo-icon {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 6px;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+        .nav-menu { display: flex; gap: 2px; background: rgba(0, 0, 0, 0.04); padding: 4px; border-radius: 10px; }
+        .nav-item {
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .nav-item:hover { color: var(--text-primary); }
+        .nav-item.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow); }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .user-info { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 5px 12px 5px 5px; border-radius: var(--radius); }
+        .user-avatar {
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .user-name { font-size: 13.5px; font-weight: 500; }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: 220px;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
+            position: fixed;
+            top: 56px; left: 0; bottom: 0;
+            overflow-y: auto;
+            padding: 16px 12px;
+        }
+        .sidebar-group { margin-bottom: 16px; }
+        .sidebar-group-title {
+            padding: 8px 12px;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 9px 12px;
+            font-size: 13.5px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            gap: 10px;
+            transition: var(--transition);
+        }
+        .sidebar-item:hover { background: var(--border-light); color: var(--text-primary); }
+        .sidebar-item.active { background: var(--primary-bg); color: var(--primary); }
+        .sidebar-item .icon { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; }
+        .sidebar-item .icon svg { width: 18px; height: 18px; }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 220px;
+            padding: 80px 24px 24px 24px;
+            min-height: 100vh;
+        }
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+        .page-title { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+        .page-breadcrumb { font-size: 13px; color: var(--text-muted); }
+        .page-breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+        .page-breadcrumb a:hover { color: var(--primary); }
+
+        /* 申请容器 - 左右布局 */
+        .apply-container {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 24px;
+        }
+
+        /* 左侧 - 选择区域 */
+        .selection-panel {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        .selection-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg);
+        }
+        .selection-header-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .selection-header-title svg { width: 18px; height: 18px; color: var(--primary); }
+        .selection-flow {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .flow-step {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            background: var(--surface);
+        }
+        .flow-step.active { background: var(--primary-bg); color: var(--primary); font-weight: 500; }
+        .flow-arrow { color: var(--text-muted); }
+
+        /* 平台选择 */
+        .platform-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-light);
+            flex-wrap: wrap;
+        }
+        .platform-tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--surface);
+        }
+        .platform-tab:hover { border-color: var(--primary-light); }
+        .platform-tab.active { border-color: var(--primary); background: var(--primary-bg); color: var(--primary); }
+        .platform-tab-icon {
+            width: 24px; height: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        .platform-tab-icon.baize { background: var(--primary-bg); color: var(--primary); }
+        .platform-tab-icon.dashboard { background: var(--success-bg); color: var(--success); }
+        .platform-tab-icon.indicator { background: var(--purple-bg); color: var(--purple); }
+        .platform-tab-icon.portal { background: var(--warning-bg); color: var(--warning); }
+        .platform-tab-name { font-size: 13px; font-weight: 500; }
+
+        /* 产品线选择 */
+        .product-line-section {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .product-line-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .product-line-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .product-line-tab {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--surface);
+        }
+        .product-line-tab:hover { border-color: var(--primary-light); }
+        .product-line-tab.active { border-color: var(--primary); background: var(--primary-bg); color: var(--primary); font-weight: 500; }
+
+        /* 角色选择 */
+        .role-section {
+            padding: 16px 20px;
+            min-height: 200px;
+        }
+        .role-section-title {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+        .role-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .role-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--surface);
+        }
+        .role-item:hover { border-color: var(--primary-light); background: var(--primary-bg); }
+        .role-item.selected { border-color: var(--primary); background: var(--primary-bg); }
+        .role-checkbox {
+            width: 18px; height: 18px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            transition: var(--transition);
+        }
+        .role-item.selected .role-checkbox {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+        .role-checkbox svg { width: 12px; height: 12px; display: none; }
+        .role-item.selected .role-checkbox svg { display: block; }
+        .role-info { flex: 1; }
+        .role-name { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+        .role-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        .role-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .role-badge.owned {
+            background: var(--border-light);
+            color: var(--text-muted);
+        }
+        .role-item.owned {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .role-item.owned:hover {
+            border-color: var(--border);
+            background: var(--surface);
+        }
+
+        /* 右侧 - 已选择区域 */
+        .selected-panel {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            height: fit-content;
+            position: sticky;
+            top: 80px;
+        }
+        .selected-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .selected-header-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .selected-header-title svg { width: 18px; height: 18px; color: var(--success); }
+        .selected-count {
+            font-size: 12px;
+            color: var(--primary);
+            font-weight: 500;
+            padding: 4px 10px;
+            background: var(--primary-bg);
+            border-radius: 10px;
+        }
+        .selected-list {
+            padding: 16px 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .selected-item {
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .selected-item:last-child { margin-bottom: 0; }
+        .selected-item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .selected-item-platform {
+            font-size: 12px;
+            padding: 2px 6px;
+            background: var(--primary-bg);
+            color: var(--primary);
+            border-radius: 3px;
+            margin-right: 6px;
+        }
+        .selected-item-product {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .selected-item-remove {
+            width: 22px; height: 22px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: var(--transition);
+            background: transparent;
+        }
+        .selected-item-remove:hover { background: var(--danger-bg); color: var(--danger); }
+        .selected-item-role {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-top: 6px;
+        }
+
+        .selected-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+        }
+        .selected-empty svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.5; }
+        .selected-empty-text { font-size: 13px; }
+
+        /* 申请理由 */
+        .reason-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 20px;
+            margin-top: 24px;
+        }
+        .reason-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .reason-title svg { width: 18px; height: 18px; color: var(--primary); }
+        .reason-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            color: var(--text-primary);
+            resize: vertical;
+            min-height: 100px;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+        .reason-input:focus { outline: none; border-color: var(--primary); }
+        .reason-input::placeholder { color: var(--text-muted); }
+        .reason-required { font-size: 12px; color: var(--danger); margin-top: 8px; display: none; }
+        .reason-required.show { display: block; }
+
+        /* 提交按钮 */
+        .submit-section {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding-top: 20px;
+        }
+        .btn {
+            padding: 10px 24px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+        }
+        .btn-default {
+            background: var(--bg);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .btn-default:hover { background: var(--border-light); }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: #1d4ed8; }
+        .btn-primary.disabled { background: var(--border); color: var(--text-muted); cursor: not-allowed; }
+
+        @media (max-width: 1200px) {
+            .apply-container { grid-template-columns: 1fr; }
+            .selected-panel { position: static; }
+        }
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; }
+            .platform-tabs { flex-direction: column; }
+        }
+
+        /* 交互说明弹窗 */
+        .help-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 300; opacity: 0; visibility: hidden; transition: var(--transition); }
+        .help-modal.open { opacity: 1; visibility: visible; }
+        .help-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; max-width: 90vw; max-height: 80vh; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-md); overflow: hidden; }
+        .help-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .help-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+        .help-close { width: 32px; height: 32px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: var(--transition); }
+        .help-close:hover { background: var(--bg); }
+        .help-close svg { width: 18px; height: 18px; color: var(--text-secondary); }
+        .help-body { padding: 20px; max-height: calc(80vh - 60px); overflow-y: auto; font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+        .help-body h4 { font-size: 15px; font-weight: 600; color: var(--text-primary); margin: 16px 0 8px 0; }
+        .help-body h4:first-child { margin-top: 0; }
+        .help-body ul { margin: 8px 0; padding-left: 20px; }
+        .help-body li { margin: 6px 0; }
+        .help-body .sub-list { padding-left: 16px; list-style-type: circle; }
+        .help-btn { padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; transition: var(--transition); }
+        .help-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-bg); }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <header class="header">
+        <a href="index.html" class="logo">
+            <div class="logo-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            </div>
+            数智门户
+        </a>
+        <nav class="nav-menu">
+            <a href="https://dcpadmin.changyan.com/" class="nav-item" target="_blank">数据采集</a>
+            <a href="http://datag.iflytek.com/app/catalogNew/dataEx/dataWork" class="nav-item" target="_blank">数据交换</a>
+            <div class="nav-item">指标中心</div>
+            <a href="https://baize.changyan.com/" class="nav-item" target="_blank">BI工具</a>
+            <a href="index.html" class="nav-item">数据看板</a>
+            <div class="nav-item">用户画像</div>
+            <div class="nav-item active">权限中心</div>
+        </nav>
+        <div class="header-right">
+            <div class="user-info">
+                <div class="user-avatar">张</div>
+                <span class="user-name">张三</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="page-container">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-group">
+                <div class="sidebar-group-title">我的权限</div>
+                <a href="my-permission.html" class="sidebar-item">
+                    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+                    <span>我的权限</span>
+                </a>
+                <a href="permission-apply.html" class="sidebar-item active">
+                    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg></span>
+                    <span>权限申请</span>
+                </a>
+                <a href="application-list.html" class="sidebar-item">
+                    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+                    <span>申请记录</span>
+                </a>
+            </div>
+            <div class="sidebar-group">
+                <div class="sidebar-group-title">审批管理</div>
+                <a href="approval-manage.html" class="sidebar-item">
+                    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+                    <span>审批管理</span>
+                </a>
+                <a href="approval-flow-config.html" class="sidebar-item">
+                    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+                    <span>审批流程配置</span>
+                </a>
+            </div>
+            <div class="sidebar-group">
+                <div class="sidebar-group-title">系统管理</div>
+                <a href="app-product-line.html" class="sidebar-item">
+                    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span>
+                    <span>应用与产品线管理</span>
+                </a>
+                <a href="user-permission-manage.html" class="sidebar-item">
+                    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                    <span>用户权限管理</span>
+                </a>
+                <a href="operation-log.html" class="sidebar-item">
+                    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+                    <span>操作日志</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">权限申请</h1>
+                    <div class="page-breadcrumb">
+                        <a href="index.html">首页</a> / <a href="index.html">权限中心</a> / <span>权限申请</span>
+                    </div>
+                </div>
+                <button class="help-btn" onclick="openHelpModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    交互说明
+                </button>
+            </div>
+
+            <div class="apply-container">
+                <!-- 左侧 - 选择区域 -->
+                <div class="selection-panel">
+                    <div class="selection-header">
+                        <div class="selection-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                            选择角色
+                        </div>
+                        <div class="selection-flow">
+                            <span class="flow-step active">选择平台</span>
+                            <span class="flow-arrow">→</span>
+                            <span class="flow-step">选择产品线</span>
+                            <span class="flow-arrow">→</span>
+                            <span class="flow-step">选择角色</span>
+                        </div>
+                    </div>
+
+                    <!-- 平台选择 -->
+                    <div class="platform-tabs" id="platformTabs">
+                        <div class="platform-tab active" data-platform="baize">
+                            <div class="platform-tab-icon baize">B</div>
+                            <span class="platform-tab-name">白泽</span>
+                        </div>
+                        <div class="platform-tab" data-platform="dashboard">
+                            <div class="platform-tab-icon dashboard">D</div>
+                            <span class="platform-tab-name">数据看板</span>
+                        </div>
+                        <div class="platform-tab" data-platform="indicator">
+                            <div class="platform-tab-icon indicator">I</div>
+                            <span class="platform-tab-name">指标中心</span>
+                        </div>
+                        <div class="platform-tab" data-platform="portal">
+                            <div class="platform-tab-icon portal">P</div>
+                            <span class="platform-tab-name">数智门户</span>
+                        </div>
+                    </div>
+
+                    <!-- 产品线选择 -->
+                    <div class="product-line-section" id="productLineSection">
+                        <div class="product-line-label">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                            选择产品线
+                        </div>
+                        <div class="product-line-tabs" id="productLineTabs">
+                            <!-- 动态填充 -->
+                        </div>
+                    </div>
+
+                    <!-- 角色选择 -->
+                    <div class="role-section" id="roleSection">
+                        <div class="role-section-title">选择该产品线下的角色</div>
+                        <div class="role-grid" id="roleGrid">
+                            <!-- 动态填充 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右侧 - 已选择区域 -->
+                <div class="selected-panel">
+                    <div class="selected-header">
+                        <div class="selected-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                            已选择角色
+                        </div>
+                        <span class="selected-count" id="selectedCount">0 个</span>
+                    </div>
+                    <div class="selected-list" id="selectedList">
+                        <div class="selected-empty" id="selectedEmpty">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><path d="M9 9h.01"/><path d="M15 9h.01"/></svg>
+                            <div class="selected-empty-text">请从左侧选择需要申请的角色</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 申请理由 -->
+            <div class="reason-card">
+                <div class="reason-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    申请理由（必填）
+                </div>
+                <textarea class="reason-input" id="reasonInput" placeholder="请说明申请原因，例如：项目需要、工作职责变更等（必填，最多200字）" maxlength="200"></textarea>
+                <div class="reason-required" id="reasonRequired">请填写申请理由</div>
+            </div>
+
+            <!-- 提交按钮 -->
+            <div class="submit-section">
+                <button class="btn btn-default" onclick="cancelApply()">取消</button>
+                <button class="btn btn-primary" id="submitBtn" onclick="submitApply()">提交申请</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- 交互说明弹窗 -->
+    <div class="help-modal" id="helpModal">
+        <div class="help-content">
+            <div class="help-header">
+                <span class="help-title">权限申请 - 交互说明</span>
+                <button class="help-close" onclick="closeHelpModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="help-body">
+                <h4>申请流程</h4>
+                <ul>
+                    <li>选择平台 → 展示该平台下的产品线（支持多选）</li>
+                    <li>选择产品线 → 展示该产品线下的可申请角色（支持多选）</li>
+                    <li>勾选角色 → 已选角色实时添加到右侧列表</li>
+                    <li>填写申请理由（必填，限200字）</li>
+                    <li>提交申请</li>
+                </ul>
+
+                <h4>页面布局</h4>
+                <ul>
+                    <li>左侧：平台与角色选择区域</li>
+                    <li>右侧：钮已选角色列表，实时显示已勾选的角色</li>
+                    <li>底部：申请理由输入框和提交按钮</li>
+                </ul>
+
+                <h4>平台选择</h4>
+                <ul>
+                    <li>点击平台卡片 → 展开该平台下的产品线列表</li>
+                    <li>支持多平台同时选择</li>
+                </ul>
+
+                <h4>产品线与角色选择</h4>
+                <ul>
+                    <li>展开产品线 → 显示该产品线下的可申请角色列表</li>
+                    <li>角色显示：角色名称、角色描述</li>
+                    <li>点击角色 → 添加到已选列表</li>
+                    <li>已有权限的角色显示"已拥有"标签，不可再次申请</li>
+                </ul>
+
+                <h4>已选角色列表</h4>
+                <ul>
+                    <li>实时显示已选择的角色</li>
+                    <li>显示格式：平台图标 + 产品线名称 + 角色名称</li>
+                    <li>点击删除按钮 → 移除该角色</li>
+                </ul>
+
+                <h4>申请理由</h4>
+                <ul>
+                    <li>必填字段，限200字</li>
+                </ul>
+
+                <h4>提交申请</h4>
+                <ul>
+                    <li>点击"提交申请"按钮 → 验证必填项</li>
+                    <li>提交成功 → 弹出成功提示，自动跳转到申请记录页面</li>
+                    <li>通过i讯飞通知审批人</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openHelpModal() {
+            document.getElementById('helpModal').classList.add('open');
+        }
+
+        function closeHelpModal() {
+            document.getElementById('helpModal').classList.remove('open');
+        }
+
+        // 平台数据配置
+        const platformData = {
+            baize: {
+                name: '白泽',
+                productLines: {
+                    learning: {
+                        name: '学习业务线',
+                        roles: [
+                            { id: 'baize-learn-admin', name: '管理员', desc: '管理看板、用户权限' },
+                            { id: 'baize-learn-editor', name: 'Dashboard Editor', desc: '可以创建和编辑看板、图表' },
+                            { id: 'baize-learn-viewer', name: 'Dashboard Viewer', desc: '仅可查看已发布的看板' },
+                            { id: 'baize-learn-analyst', name: 'Data Analyst', desc: '创建SQL查询、编写自定义指标' }
+                        ]
+                    },
+                    education: {
+                        name: '教育业务线',
+                        roles: [
+                            { id: 'baize-edu-editor', name: 'Report Editor', desc: '创建和编辑报表模板' },
+                            { id: 'baize-edu-viewer', name: 'Report Viewer', desc: '查看报表内容' }
+                        ]
+                    },
+                    public: {
+                        name: '公共报表',
+                        roles: [
+                            { id: 'baize-pub-viewer', name: '公共报表查看者', desc: '查看公共报表' }
+                        ]
+                    }
+                }
+            },
+            dashboard: {
+                name: '数据看板',
+                productLines: {
+                    public: {
+                        name: '公共看板',
+                        roles: [
+                            { id: 'dash-pub-admin', name: '看板管理员', desc: '管理公共看板配置' },
+                            { id: 'dash-pub-viewer', name: '查看者', desc: '查看公共看板数据' }
+                        ]
+                    },
+                    operation: {
+                        name: '运营看板',
+                        roles: [
+                            { id: 'dash-op-editor', name: '编辑者', desc: '编辑运营看板内容' },
+                            { id: 'dash-op-viewer', name: '查看者', desc: '查看运营看板数据' }
+                        ]
+                    }
+                }
+            },
+            indicator: {
+                name: '指标中心',
+                productLines: {
+                    core: {
+                        name: '核心指标',
+                        roles: [
+                            { id: 'ind-core-admin', name: '指标管理员', desc: '管理核心指标定义' },
+                            { id: 'ind-core-editor', name: '编辑者', desc: '编辑指标配置' },
+                            { id: 'ind-core-viewer', name: '查看者', desc: '查看指标数据' }
+                        ]
+                    },
+                    business: {
+                        name: '业务指标',
+                        roles: [
+                            { id: 'ind-biz-editor', name: '编辑者', desc: '编辑业务指标' },
+                            { id: 'ind-biz-viewer', name: '查看者', desc: '查看业务指标' }
+                        ]
+                    }
+                }
+            },
+            portal: {
+                name: '数智门户',
+                productLines: {
+                    system: {
+                        name: '系统管理',
+                        roles: [
+                            { id: 'portal-sys-admin', name: '系统管理员', desc: '管理平台配置、用户权限' },
+                            { id: 'portal-sys-viewer', name: '查看者', desc: '查看系统配置' }
+                        ]
+                    },
+                    data: {
+                        name: '数据管理',
+                        roles: [
+                            { id: 'portal-data-owner', name: '数据Owner', desc: '管理数据资产' },
+                            { id: 'portal-data-viewer', name: '查看者', desc: '查看数据目录' }
+                        ]
+                    }
+                }
+            }
+        };
+
+        let currentPlatform = 'baize';
+        let currentProductLine = 'learning';
+        let selectedRoles = [];
+
+        // 初始化
+        function init() {
+            renderProductLines();
+            renderRoles();
+            updateSelectedList();
+        }
+
+        // 切换平台
+        document.getElementById('platformTabs').addEventListener('click', function(e) {
+            const tab = e.target.closest('.platform-tab');
+            if (!tab) return;
+
+            document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            currentPlatform = tab.dataset.platform;
+            const productLines = platformData[currentPlatform].productLines;
+            currentProductLine = Object.keys(productLines)[0];
+
+            renderProductLines();
+            renderRoles();
+        });
+
+        // 渲染产品线
+        function renderProductLines() {
+            const productLines = platformData[currentPlatform].productLines;
+            const container = document.getElementById('productLineTabs');
+
+            container.innerHTML = Object.entries(productLines).map(([key, line], index) => `
+                <div class="product-line-tab ${index === 0 ? 'active' : ''}" data-line="${key}">
+                    ${line.name}
+                </div>
+            `).join('');
+
+            // 绑定事件
+            container.querySelectorAll('.product-line-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    container.querySelectorAll('.product-line-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    currentProductLine = this.dataset.line;
+                    renderRoles();
+                });
+            });
+        }
+
+        // 模拟用户已有权限
+        const ownedRoles = ['baize-learn-admin', 'baize-learn-viewer', 'dash-pub-viewer'];
+
+        // 渲染角色
+        function renderRoles() {
+            const roles = platformData[currentPlatform].productLines[currentProductLine].roles;
+            const container = document.getElementById('roleGrid');
+
+            container.innerHTML = roles.map(role => {
+                const isSelected = selectedRoles.some(r => r.id === role.id);
+                const isOwned = ownedRoles.includes(role.id);
+                return `
+                    <div class="role-item ${isSelected ? 'selected' : ''} ${isOwned ? 'owned' : ''}" data-role-id="${role.id}" data-owned="${isOwned}">
+                        <div class="role-checkbox">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <div class="role-info">
+                            <div class="role-name">${role.name}</div>
+                            <div class="role-desc">${role.desc}</div>
+                        </div>
+                        ${isOwned ? '<span class="role-badge owned">已拥有</span>' : ''}
+                    </div>
+                `;
+            }).join('');
+
+            // 绑定事件
+            container.querySelectorAll('.role-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    toggleRole(this);
+                });
+            });
+        }
+
+        // 切换角色选择
+        function toggleRole(item) {
+            // 如果是已拥有的角色，不可选择
+            if (item.classList.contains('owned')) {
+                return;
+            }
+
+            const roleId = item.dataset.roleId;
+            const roles = platformData[currentPlatform].productLines[currentProductLine].roles;
+            const role = roles.find(r => r.id === roleId);
+
+            if (item.classList.contains('selected')) {
+                // 移除选择
+                selectedRoles = selectedRoles.filter(r => r.id !== roleId);
+                item.classList.remove('selected');
+            } else {
+                // 添加选择
+                selectedRoles.push({
+                    id: roleId,
+                    platform: platformData[currentPlatform].name,
+                    platformKey: currentPlatform,
+                    productLine: platformData[currentPlatform].productLines[currentProductLine].name,
+                    productLineKey: currentProductLine,
+                    name: role.name,
+                    desc: role.desc
+                });
+                item.classList.add('selected');
+            }
+
+            updateSelectedList();
+        }
+
+        // 更新已选择列表
+        function updateSelectedList() {
+            const container = document.getElementById('selectedList');
+            const countEl = document.getElementById('selectedCount');
+            const emptyEl = document.getElementById('selectedEmpty');
+
+            countEl.textContent = `${selectedRoles.length} 个`;
+
+            if (selectedRoles.length === 0) {
+                container.innerHTML = `
+                    <div class="selected-empty">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 15h8"/><path d="M9 9h.01"/><path d="M15 9h.01"/></svg>
+                        <div class="selected-empty-text">请从左侧选择需要申请的角色</div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = selectedRoles.map((role, index) => `
+                    <div class="selected-item" data-index="${index}">
+                        <div class="selected-item-header">
+                            <span class="selected-item-platform">${role.platform}</span>
+                            <span class="selected-item-product">${role.productLine}</span>
+                            <div class="selected-item-remove" onclick="removeRole('${role.id}')">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </div>
+                        </div>
+                        <div class="selected-item-role">${role.name}</div>
+                    </div>
+                `).join('');
+            }
+
+            // 更新流程指示器
+            updateFlowIndicator();
+        }
+
+        // 更新流程指示器
+        function updateFlowIndicator() {
+            const steps = document.querySelectorAll('.flow-step');
+            steps.forEach(step => step.classList.remove('active'));
+
+            if (selectedRoles.length > 0) {
+                steps[2].classList.add('active');
+            } else if (currentProductLine) {
+                steps[1].classList.add('active');
+            } else {
+                steps[0].classList.add('active');
+            }
+        }
+
+        // 移除角色
+        function removeRole(roleId) {
+            selectedRoles = selectedRoles.filter(r => r.id !== roleId);
+            updateSelectedList();
+
+            // 更新左侧选中状态
+            const roleItem = document.querySelector(`[data-role-id="${roleId}"]`);
+            if (roleItem) {
+                roleItem.classList.remove('selected');
+            }
+        }
+
+        // 取消
+        function cancelApply() {
+            window.location.href = 'my-permission.html';
+        }
+
+        // 提交
+        function submitApply() {
+            const reason = document.getElementById('reasonInput').value.trim();
+
+            if (selectedRoles.length === 0) {
+                alert('请选择至少一个角色');
+                return;
+            }
+
+            if (!reason) {
+                document.getElementById('reasonRequired').classList.add('show');
+                return;
+            }
+
+            // 模拟提交
+            alert('申请已提交，请等待审批');
+            window.location.href = 'application-list.html';
+        }
+
+        // 监听输入框变化
+        document.getElementById('reasonInput').addEventListener('input', function() {
+            if (this.value.trim()) {
+                document.getElementById('reasonRequired').classList.remove('show');
+            }
+        });
+
+        // 解析URL参数进行回填（重新申请）
+        function parseUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            if (params.has('platform')) {
+                // 回填平台
+                const platformParam = params.get('platform');
+                const platformMap = {
+                    '白泽': 'baize',
+                    '数据看板': 'dashboard',
+                    '指标中心': 'indicator',
+                    '数智门户': 'portal'
+                };
+                const platformKey = platformMap[platformParam] || 'baize';
+
+                document.querySelectorAll('.platform-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                    if (tab.dataset.platform === platformKey) {
+                        tab.classList.add('active');
+                    }
+                });
+
+                currentPlatform = platformKey;
+
+                // 回填产品线
+                if (params.has('productLine')) {
+                    const productLineParam = params.get('productLine');
+                    renderProductLines();
+
+                    // 找到对应的产品线tab
+                    setTimeout(() => {
+                        document.querySelectorAll('.product-line-tab').forEach(tab => {
+                            tab.classList.remove('active');
+                            const lineData = platformData[currentPlatform].productLines[tab.dataset.line];
+                            if (lineData && lineData.name === productLineParam) {
+                                tab.classList.add('active');
+                                currentProductLine = tab.dataset.line;
+                            }
+                        });
+                        renderRoles();
+
+                        // 回填角色
+                        if (params.has('roles')) {
+                            const rolesParam = params.get('roles').split(',');
+                            setTimeout(() => {
+                                document.querySelectorAll('.role-item').forEach(item => {
+                                    const roleId = item.dataset.roleId;
+                                    const roles = platformData[currentPlatform].productLines[currentProductLine].roles;
+                                    const role = roles.find(r => r.id === roleId);
+                                    if (role && rolesParam.includes(role.name)) {
+                                        item.classList.add('selected');
+                                        selectedRoles.push({
+                                            id: roleId,
+                                            platform: platformData[currentPlatform].name,
+                                            platformKey: currentPlatform,
+                                            productLine: platformData[currentPlatform].productLines[currentProductLine].name,
+                                            productLineKey: currentProductLine,
+                                            name: role.name,
+                                            desc: role.desc,
+                                            type: role.type
+                                        });
+                                    }
+                                });
+                                updateSelectedList();
+                            }, 100);
+                        }
+                    }, 50);
+                }
+
+                // 回填申请理由
+                if (params.has('reason')) {
+                    document.getElementById('reasonInput').value = params.get('reason');
+                }
+            }
+        }
+
+        // 初始化页面
+        init();
+        parseUrlParams();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户权限管理 - 数智门户</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-bg: #eff6ff;
+            --bg: #f5f7fa;
+            --surface: #ffffff;
+            --border: #e5e7eb;
+            --border-light: #f3f4f6;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --success: #10b981;
+            --success-bg: #ecfdf5;
+            --danger: #ef4444;
+            --danger-bg: #fef2f2;
+            --warning: #f59e0b;
+            --warning-bg: #fef3c7;
+            --purple: #8b5cf6;
+            --purple-bg: #f5f3ff;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+            --transition: all 0.2s;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; background: var(--bg); min-height: 100vh; }
+        .page-container { display: flex; min-height: 100vh; }
+        .header {
+            height: 56px; background: var(--surface); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+        }
+        .logo { display: flex; align-items: center; font-size: 17px; font-weight: 700; color: var(--text-primary); text-decoration: none; }
+        .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius: 6px; margin-right: 10px; display: flex; align-items: center; justify-content: center; color: #fff; }
+        .nav-menu { display: flex; gap: 2px; background: rgba(0,0,0,0.04); padding: 4px; border-radius: 10px; }
+        .nav-item { padding: 8px 18px; border-radius: 8px; font-size: 15px; font-weight: 600; color: var(--text-secondary); text-decoration: none; }
+        .nav-item:hover { color: var(--text-primary); }
+        .nav-item.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow); }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .user-info { display: flex; align-items: center; gap: 10px; padding: 5px 12px 5px 5px; }
+        .user-avatar { width: 28px; height: 28px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 600; }
+        .sidebar { width: 220px; background: var(--surface); border-right: 1px solid var(--border); position: fixed; top: 56px; left: 0; bottom: 0; padding: 16px 12px; }
+        .sidebar-group { margin-bottom: 16px; }
+        .sidebar-group-title { padding: 8px 12px; font-size: 11px; color: var(--text-muted); font-weight: 600; }
+        .sidebar-item { display: flex; align-items: center; padding: 9px 12px; font-size: 13.5px; font-weight: 500; color: var(--text-secondary); text-decoration: none; border-radius: var(--radius-sm); gap: 10px; transition: var(--transition); }
+        .sidebar-item:hover { background: var(--border-light); }
+        .sidebar-item.active { background: var(--primary-bg); color: var(--primary); }
+        .sidebar-item .icon { width: 20px; height: 20px; }
+        .sidebar-item .icon svg { width: 18px; height: 18px; }
+        .main-content { flex: 1; margin-left: 220px; padding: 80px 24px 24px; }
+        .page-header { margin-bottom: 24px; }
+        .page-title { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+        .page-breadcrumb { font-size: 13px; color: var(--text-muted); }
+        .page-breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+
+        /* 搜索和筛选 */
+        .filter-bar {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            flex: 1;
+            max-width: 300px;
+        }
+        .search-box svg { width: 16px; height: 16px; color: var(--text-muted); }
+        .search-box input { border: none; background: transparent; outline: none; font-size: 14px; margin-left: 8px; width: 100%; }
+        .filter-select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--bg);
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        /* 用户列表 */
+        .user-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+        .user-table { width: 100%; border-collapse: collapse; }
+        .user-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+        }
+        .user-table td {
+            padding: 14px 16px;
+            font-size: 13.5px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .user-table tr:hover td { background: var(--primary-bg); }
+
+        .user-info-cell { display: flex; align-items: center; gap: 12px; }
+        .user-avatar-cell {
+            width: 36px; height: 36px;
+            border-radius: 8px;
+            background: var(--primary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .user-avatar-cell.abnormal { background: var(--danger-bg); color: var(--danger); }
+        .user-avatar-cell.warning { background: var(--warning-bg); color: var(--warning); }
+        .user-name-cell { font-weight: 500; }
+        .user-meta { font-size: 12px; color: var(--text-muted); }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-indicator.normal { background: var(--success-bg); color: var(--success); }
+        .status-indicator.resigned { background: var(--danger-bg); color: var(--danger); }
+        .status-indicator.transferred { background: var(--warning-bg); color: var(--warning); }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+        .permission-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .permission-status.has-permission { background: var(--primary-bg); color: var(--primary); }
+        .permission-status.no-permission { background: var(--border-light); color: var(--text-muted); }
+
+        .action-btns { display: flex; gap: 8px; }
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+        .action-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .action-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+        .action-btn.danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+        .pagination {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .pagination-info { font-size: 13px; color: var(--text-muted); }
+        .pagination-buttons { display: flex; gap: 8px; }
+        .page-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            color: var(--text-secondary);
+        }
+        .page-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        /* 权限分配抽屉 */
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+        .drawer-overlay.open { opacity: 1; visibility: visible; }
+        .drawer {
+            position: fixed;
+            right: -480px;
+            top: 0; bottom: 0;
+            width: 480px;
+            background: var(--surface);
+            z-index: 201;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .drawer.open { right: 0; }
+        .drawer-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .drawer-title { font-size: 16px; font-weight: 600; }
+        .drawer-close {
+            width: 32px; height: 32px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .drawer-close svg { width: 18px; height: 18px; color: var(--text-secondary); }
+        .drawer-body { flex: 1; padding: 20px; overflow-y: auto; }
+
+        .assign-user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            margin-bottom: 20px;
+        }
+        .assign-avatar {
+            width: 40px; height: 40px;
+            border-radius: 8px;
+            background: var(--primary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .assign-name { font-weight: 500; }
+        .assign-dept { font-size: 13px; color: var(--text-muted); }
+
+        .assign-section { margin-bottom: 20px; }
+        .assign-section-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+        .platform-select {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .platform-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .platform-btn:hover { border-color: var(--primary); }
+        .platform-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        .role-list { margin-top: 12px; }
+        .role-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            margin-bottom: 8px;
+            cursor: pointer;
+        }
+        .role-item:hover { background: var(--primary-bg); }
+        .role-info { display: flex; align-items: center; gap: 8px; }
+        .role-checkbox {
+            width: 18px; height: 18px;
+            border-radius: 4px;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .role-checkbox.checked { background: var(--primary); border-color: var(--primary); }
+        .role-checkbox.checked svg { width: 12px; height: 12px; color: #fff; }
+        .role-name { font-size: 14px; font-weight: 500; }
+        .role-type { font-size: 12px; color: var(--text-muted); }
+
+        .drawer-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 12px;
+        }
+        .drawer-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+            flex: 1;
+        }
+        .drawer-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        /* 查看权限弹窗 */
+        .view-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 300;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .view-modal.open { display: flex; }
+        .view-content {
+            background: var(--surface);
+            border-radius: var(--radius);
+            width: 600px;
+            max-height: 80vh;
+            overflow: hidden;
+        }
+        .view-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .view-title { font-size: 16px; font-weight: 600; }
+        .view-close {
+            width: 32px; height: 32px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .view-close svg { width: 18px; height: 18px; color: var(--text-secondary); }
+        .view-body { padding: 0; overflow-y: auto; max-height: calc(80vh - 120px); }
+
+        .view-user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+        }
+        .view-user-avatar {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        /* 权限表格 */
+        .permission-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .permission-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+        }
+        .permission-table td {
+            padding: 14px 16px;
+            font-size: 14px;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-light);
+        }
+        .permission-table tr:last-child td { border-bottom: none; }
+        .permission-table tbody tr:hover { background: var(--bg); }
+
+        .platform-cell {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .platform-mini-icon {
+            width: 22px; height: 22px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .type-badge {
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .type-badge.view { background: var(--primary-bg); color: var(--primary); }
+        .type-badge.edit { background: var(--warning-bg); color: var(--warning); }
+        .type-badge.analyze { background: var(--purple-bg); color: var(--purple); }
+        .type-badge.admin { background: var(--danger-bg); color: var(--danger); }
+
+        .no-permission-tip {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        .no-permission-icon {
+            width: 56px; height: 56px;
+            margin: 0 auto 16px;
+            border-radius: 50%;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .no-permission-icon svg { width: 28px; height: 28px; color: var(--text-muted); }
+
+        /* 回收权限确认弹窗 */
+        .revoke-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 300;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .revoke-modal.open { display: flex; }
+        .revoke-content {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 24px;
+            width: 400px;
+        }
+        .revoke-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+        .revoke-text { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5; }
+        .revoke-actions { display: flex; gap: 12px; }
+        .revoke-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            flex: 1;
+            border: 1px solid var(--border);
+            background: var(--surface);
+        }
+        .revoke-btn.danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main-content { margin-left: 0; }
+            .filter-bar { flex-wrap: wrap; }
+            .drawer { width: 100%; right: -100%; }
+            .view-content { width: 100%; }
+        }
+
+        /* 交互说明弹窗 */
+        .help-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 300;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+        .help-modal.open { opacity: 1; visibility: visible; }
+        .help-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 720px;
+            max-width: 90vw;
+            max-height: 80vh;
+            background: var(--surface);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+        .help-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .help-title { font-size: 16px; font-weight: 600; }
+        .help-close {
+            width: 32px; height: 32px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .help-close svg { width: 18px; height: 18px; color: var(--text-secondary); }
+        .help-body {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(80vh - 60px);
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+        .help-body h4 { font-size: 15px; font-weight: 600; color: var(--text-primary); margin: 16px 0 8px 0; }
+        .help-body h4:first-child { margin-top: 0; }
+        .help-body ul { margin: 8px 0; padding-left: 20px; }
+        .help-body li { margin: 6px 0; }
+        .help-body .sub-list { padding-left: 16px; list-style-type: circle; }
+        .help-body table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        .help-body th, .help-body td { padding: 8px 12px; border: 1px solid var(--border); text-align: left; }
+        .help-body th { background: var(--bg); font-weight: 500; color: var(--text-primary); }
+        .help-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+        .help-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-bg); }
+
+        /* 批量选择 */
+        .batch-checkbox {
+            width: 18px; height: 18px;
+            border-radius: 4px;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+        .batch-checkbox:hover { border-color: var(--primary); }
+        .batch-checkbox.checked { background: var(--primary); border-color: var(--primary); }
+        .batch-checkbox.checked svg { width: 12px; height: 12px; color: #fff; }
+        .batch-checkbox.th-checkbox {
+            width: 16px; height: 16px;
+        }
+        .checkbox-cell {
+            width: 40px;
+            text-align: center;
+        }
+        .batch-action-bar {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: var(--shadow-md);
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+        .batch-action-bar.visible { opacity: 1; visibility: visible; }
+        .batch-selected-count {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+        .batch-selected-count strong { color: var(--primary); }
+        .batch-assign-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            transition: var(--transition);
+        }
+        .batch-assign-btn:hover { background: var(--primary-light); }
+        .batch-cancel-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+        .batch-cancel-btn:hover { border-color: var(--text-secondary); }
+
+        /* 批量分配抽屉用户列表 */
+        .batch-users-list {
+            margin-bottom: 20px;
+            padding: 12px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+        }
+        .batch-users-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .batch-user-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            background: var(--surface);
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .batch-user-item:last-child { margin-bottom: 0; }
+        .batch-user-avatar {
+            width: 28px; height: 28px;
+            border-radius: 6px;
+            background: var(--primary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .batch-user-name { font-size: 13px; font-weight: 500; }
+        .batch-user-account { font-size: 12px; color: var(--text-muted); }
+        .batch-users-scroll {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="index.html" class="logo">
+            <div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+            数智门户
+        </a>
+        <nav class="nav-menu">
+            <a href="https://dcpadmin.changyan.com/" class="nav-item" target="_blank">数据采集</a>
+            <div class="nav-item">指标中心</div>
+            <a href="index.html" class="nav-item">数据看板</a>
+            <div class="nav-item active">权限中心</div>
+        </nav>
+        <div class="header-right">
+            <div class="user-info">
+                <div class="user-avatar">管</div>
+                <span class="user-name">管理员</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="page-container">
+        <aside class="sidebar">
+            <div class="sidebar-group">
+                <div class="sidebar-group-title">我的权限</div>
+                <a href="my-permission.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>我的权限</a>
+                <a href="permission-apply.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/></svg></span>权限申请</a>
+                <a href="application-list.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></span>申请记录</a>
+            </div>
+            <div class="sidebar-group">
+                <div class="sidebar-group-title">审批管理</div>
+                <a href="approval-manage.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg></span>审批管理</a>
+                <a href="approval-flow-config.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>审批流程配置</a>
+            </div>
+            <div class="sidebar-group">
+                <div class="sidebar-group-title">系统管理</div>
+                <a href="app-product-line.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg></span>应用与产品线管理</a>
+                <a href="user-permission-manage.html" class="sidebar-item active"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>用户权限管理</a>
+                <a href="operation-log.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></span>操作日志</a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">用户权限管理</h1>
+                    <div class="page-breadcrumb"><a href="index.html">首页</a> / <a href="index.html">权限中心</a> / <span>用户权限管理</span></div>
+                </div>
+                <button class="help-btn" onclick="openHelpModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    交互说明
+                </button>
+            </div>
+
+            <div class="filter-bar">
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" placeholder="搜索用户姓名、域账号...">
+                </div>
+                <select class="filter-select" id="platformFilter" onchange="filterByPlatform()">
+                    <option value="">全部平台</option>
+                    <option value="baize">白泽</option>
+                    <option value="indicator">指标中心</option>
+                    <option value="dashboard">数据看板</option>
+                </select>
+                <select class="filter-select" id="permissionFilter" onchange="filterByPermission()">
+                    <option value="">全部状态</option>
+                    <option value="has">有权限</option>
+                    <option value="none">无权限</option>
+                </select>
+            </div>
+
+            <div class="user-card">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-cell">
+                                <div class="batch-checkbox th-checkbox" onclick="toggleAllCheckbox(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
+                            </th>
+                            <th>用户</th>
+                            <th>部门</th>
+                            <th>用户状态</th>
+                            <th>权限状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 有权限的正常用户 -->
+                        <tr class="user-row has-permission normal" data-name="张三" data-account="zhangsan">
+                            <td class="checkbox-cell">
+                                <div class="batch-checkbox" onclick="toggleRowCheckbox(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="user-info-cell">
+                                    <div class="user-avatar-cell">张</div>
+                                    <div>
+                                        <div class="user-name-cell">张三</div>
+                                        <div class="user-meta">zhangsan</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>数据产品部</td>
+                            <td><span class="status-indicator normal"><span class="status-dot"></span>正常</span></td>
+                            <td><span class="permission-status has-permission"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>有权限</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="action-btn" onclick="viewPermissions('张三', 'zhangsan', true)">查看权限</button>
+                                    <button class="action-btn primary" onclick="openAssignDrawer('张三', 'zhangsan')">分配权限</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- 无权限的用户 -->
+                        <tr class="user-row no-permission normal" data-name="刘一" data-account="liuyi">
+                            <td class="checkbox-cell">
+                                <div class="batch-checkbox" onclick="toggleRowCheckbox(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="user-info-cell">
+                                    <div class="user-avatar-cell">刘</div>
+                                    <div>
+                                        <div class="user-name-cell">刘一</div>
+                                        <div class="user-meta">liuyi</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>研发中心</td>
+                            <td><span class="status-indicator normal"><span class="status-dot"></span>正常</span></td>
+                            <td><span class="permission-status no-permission"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>无权限</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="action-btn primary" onclick="openAssignDrawer('刘一', 'liuyi')">分配权限</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- 有权限的离职用户 -->
+                        <tr class="user-row has-permission resigned" data-name="李四" data-account="lisi">
+                            <td class="checkbox-cell">
+                                <div class="batch-checkbox" onclick="toggleRowCheckbox(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="user-info-cell">
+                                    <div class="user-avatar-cell abnormal">李</div>
+                                    <div>
+                                        <div class="user-name-cell">李四</div>
+                                        <div class="user-meta">lisi</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>研发中心</td>
+                            <td><span class="status-indicator resigned"><span class="status-dot"></span>已离职</span></td>
+                            <td><span class="permission-status has-permission"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>有权限</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="action-btn" onclick="viewPermissions('李四', 'lisi', true)">查看权限</button>
+                                    <button class="action-btn danger" onclick="revokePermissions('李四', 'lisi', '离职')">回收权限</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- 无权限的离职用户 -->
+                        <tr class="user-row no-permission resigned" data-name="陈二" data-account="chener">
+                            <td class="checkbox-cell">
+                                <div class="batch-checkbox" onclick="toggleRowCheckbox(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="user-info-cell">
+                                    <div class="user-avatar-cell abnormal">陈</div>
+                                    <div>
+                                        <div class="user-name-cell">陈二</div>
+                                        <div class="user-meta">chener</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>运营中心</td>
+                            <td><span class="status-indicator resigned"><span class="status-dot"></span>已离职</span></td>
+                            <td><span class="permission-status no-permission"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>无权限</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <span style="color: var(--text-muted); font-size: 12px;">无需处理</span>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- 有权限的转岗用户 -->
+                        <tr class="user-row has-permission transferred" data-name="王五" data-account="wangwu">
+                            <td class="checkbox-cell">
+                                <div class="batch-checkbox" onclick="toggleRowCheckbox(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="user-info-cell">
+                                    <div class="user-avatar-cell warning">王</div>
+                                    <div>
+                                        <div class="user-name-cell">王五</div>
+                                        <div class="user-meta">wangwu</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>技术中心（原：数据产品部）</td>
+                            <td><span class="status-indicator transferred"><span class="status-dot"></span>已转岗</span></td>
+                            <td><span class="permission-status has-permission"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>有权限</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="action-btn" onclick="viewPermissions('王五', 'wangwu', true)">查看权限</button>
+                                    <button class="action-btn danger" onclick="revokePermissions('王五', 'wangwu', '转岗')">回收权限</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- 有权限的正常用户 -->
+                        <tr class="user-row has-permission normal" data-name="赵六" data-account="zhaoliu">
+                            <td class="checkbox-cell">
+                                <div class="batch-checkbox" onclick="toggleRowCheckbox(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="user-info-cell">
+                                    <div class="user-avatar-cell">赵</div>
+                                    <div>
+                                        <div class="user-name-cell">赵六</div>
+                                        <div class="user-meta">zhaoliu</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>数据平台部</td>
+                            <td><span class="status-indicator normal"><span class="status-dot"></span>正常</span></td>
+                            <td><span class="permission-status has-permission"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>有权限</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="action-btn" onclick="viewPermissions('赵六', 'zhaoliu', true)">查看权限</button>
+                                    <button class="action-btn primary" onclick="openAssignDrawer('赵六', 'zhaoliu')">分配权限</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- 无权限的正常用户 -->
+                        <tr class="user-row no-permission normal" data-name="周九" data-account="zhoujiu">
+                            <td class="checkbox-cell">
+                                <div class="batch-checkbox" onclick="toggleRowCheckbox(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="user-info-cell">
+                                    <div class="user-avatar-cell">周</div>
+                                    <div>
+                                        <div class="user-name-cell">周九</div>
+                                        <div class="user-meta">zhoujiu</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>市场部</td>
+                            <td><span class="status-indicator normal"><span class="status-dot"></span>正常</span></td>
+                            <td><span class="permission-status no-permission"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>无权限</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="action-btn primary" onclick="openAssignDrawer('周九', 'zhoujiu')">分配权限</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <!-- 有权限的转岗用户 -->
+                        <tr class="user-row has-permission transferred" data-name="孙八" data-account="sunba">
+                            <td class="checkbox-cell">
+                                <div class="batch-checkbox" onclick="toggleRowCheckbox(this)">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="user-info-cell">
+                                    <div class="user-avatar-cell warning">孙</div>
+                                    <div>
+                                        <div class="user-name-cell">孙八</div>
+                                        <div class="user-meta">sunba</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>产品部（原：市场部）</td>
+                            <td><span class="status-indicator transferred"><span class="status-dot"></span>已转岗</span></td>
+                            <td><span class="permission-status has-permission"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>有权限</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="action-btn" onclick="viewPermissions('孙八', 'sunba', true)">查看权限</button>
+                                    <button class="action-btn danger" onclick="revokePermissions('孙八', 'sunba', '转岗')">回收权限</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="pagination">
+                    <div class="pagination-info">共 50 条记录</div>
+                    <div class="pagination-buttons">
+                        <button class="page-btn">上一页</button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                        <button class="page-btn">下一页</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 批量操作栏 -->
+    <div class="batch-action-bar" id="batchActionBar">
+        <span class="batch-selected-count">已选择 <strong id="selectedCount">0</strong> 个用户</span>
+        <button class="batch-assign-btn" onclick="openBatchAssignDrawer()">批量分配权限</button>
+        <button class="batch-cancel-btn" onclick="clearAllSelection()">取消选择</button>
+    </div>
+
+    <!-- 权限分配抽屉 -->
+    <div class="drawer-overlay" id="drawerOverlay"></div>
+    <div class="drawer" id="assignDrawer">
+        <div class="drawer-header">
+            <span class="drawer-title">权限分配</span>
+            <button class="drawer-close" onclick="closeDrawer()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="drawer-body">
+            <div class="assign-user-info">
+                <div class="assign-avatar" id="assignAvatar">张</div>
+                <div>
+                    <div class="assign-name" id="assignName">张三</div>
+                    <div class="assign-dept" id="assignAccount">zhangsan</div>
+                </div>
+            </div>
+
+            <div class="assign-section">
+                <div class="assign-section-title">选择平台</div>
+                <div class="platform-select">
+                    <button class="platform-btn active" onclick="selectPlatform(this, 'baize')">白泽</button>
+                    <button class="platform-btn" onclick="selectPlatform(this, 'indicator')">指标中心</button>
+                    <button class="platform-btn" onclick="selectPlatform(this, 'dashboard')">数据看板</button>
+                </div>
+            </div>
+
+            <div class="assign-section">
+                <div class="assign-section-title">选择产品线</div>
+                <div class="platform-select" id="productLineSelect">
+                    <button class="platform-btn active" onclick="selectProductLine(this, 'learning')">学习业务线</button>
+                    <button class="platform-btn" onclick="selectProductLine(this, 'edu')">教育业务线</button>
+                    <button class="platform-btn" onclick="selectProductLine(this, 'public')">公共报表</button>
+                </div>
+            </div>
+
+            <div class="assign-section">
+                <div class="assign-section-title">选择角色</div>
+                <div class="role-list">
+                    <div class="role-item" onclick="toggleRole(this)">
+                        <div class="role-info">
+                            <div class="role-checkbox checked">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <div>
+                                <div class="role-name">Viewer</div>
+                                <div class="role-type">查看权限</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="role-item" onclick="toggleRole(this)">
+                        <div class="role-info">
+                            <div class="role-checkbox">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <div>
+                                <div class="role-name">Editor</div>
+                                <div class="role-type">编辑权限</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="role-item" onclick="toggleRole(this)">
+                        <div class="role-info">
+                            <div class="role-checkbox">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <div>
+                                <div class="role-name">Data Analyst</div>
+                                <div class="role-type">分析权限</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="role-item" onclick="toggleRole(this)">
+                        <div class="role-info">
+                            <div class="role-checkbox">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <div>
+                                <div class="role-name">Admin</div>
+                                <div class="role-type">管理权限</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="drawer-footer">
+            <button class="drawer-btn" onclick="closeDrawer()">取消</button>
+            <button class="drawer-btn primary" onclick="submitAssign()">确认分配</button>
+        </div>
+    </div>
+
+    <!-- 批量权限分配抽屉 -->
+    <div class="drawer" id="batchAssignDrawer">
+        <div class="drawer-header">
+            <span class="drawer-title">批量权限分配</span>
+            <button class="drawer-close" onclick="closeBatchDrawer()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div class="drawer-body">
+            <div class="batch-users-list">
+                <div class="batch-users-title">已选用户（<span id="batchUserCount">0</span>人）</div>
+                <div class="batch-users-scroll" id="batchUsersList">
+                    <!-- 动态填充用户列表 -->
+                </div>
+            </div>
+
+            <div class="assign-section">
+                <div class="assign-section-title">选择平台</div>
+                <div class="platform-select">
+                    <button class="platform-btn active" onclick="selectBatchPlatform(this, 'baize')">白泽</button>
+                    <button class="platform-btn" onclick="selectBatchPlatform(this, 'indicator')">指标中心</button>
+                    <button class="platform-btn" onclick="selectBatchPlatform(this, 'dashboard')">数据看板</button>
+                </div>
+            </div>
+
+            <div class="assign-section">
+                <div class="assign-section-title">选择产品线</div>
+                <div class="platform-select" id="batchProductLineSelect">
+                    <button class="platform-btn active" onclick="selectBatchProductLine(this, 'learning')">学习业务线</button>
+                    <button class="platform-btn" onclick="selectBatchProductLine(this, 'edu')">教育业务线</button>
+                    <button class="platform-btn" onclick="selectBatchProductLine(this, 'public')">公共报表</button>
+                </div>
+            </div>
+
+            <div class="assign-section">
+                <div class="assign-section-title">选择角色</div>
+                <div class="role-list" id="batchRoleList">
+                    <div class="role-item" onclick="toggleBatchRole(this)">
+                        <div class="role-info">
+                            <div class="role-checkbox">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <div>
+                                <div class="role-name">Viewer</div>
+                                <div class="role-type">查看权限</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="role-item" onclick="toggleBatchRole(this)">
+                        <div class="role-info">
+                            <div class="role-checkbox">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <div>
+                                <div class="role-name">Editor</div>
+                                <div class="role-type">编辑权限</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="role-item" onclick="toggleBatchRole(this)">
+                        <div class="role-info">
+                            <div class="role-checkbox">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <div>
+                                <div class="role-name">Data Analyst</div>
+                                <div class="role-type">分析权限</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="role-item" onclick="toggleBatchRole(this)">
+                        <div class="role-info">
+                            <div class="role-checkbox">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                            </div>
+                            <div>
+                                <div class="role-name">Admin</div>
+                                <div class="role-type">管理权限</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="drawer-footer">
+            <button class="drawer-btn" onclick="closeBatchDrawer()">取消</button>
+            <button class="drawer-btn primary" onclick="submitBatchAssign()">确认分配</button>
+        </div>
+    </div>
+
+    <!-- 查看权限弹窗 -->
+    <div class="view-modal" id="viewModal">
+        <div class="view-content">
+            <div class="view-header">
+                <span class="view-title">用户权限详情</span>
+                <button class="view-close" onclick="closeViewModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="view-body">
+                <div class="view-user-info">
+                    <div class="view-user-avatar" id="viewAvatar">张</div>
+                    <div>
+                        <div class="assign-name" id="viewName">张三</div>
+                        <div class="assign-dept" id="viewAccount">zhangsan</div>
+                    </div>
+                </div>
+
+                <table class="permission-table">
+                    <thead>
+                        <tr>
+                            <th>平台</th>
+                            <th>产品线</th>
+                            <th>角色</th>
+                            <th>权限类型</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="platform-cell">
+                                    <div class="platform-mini-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">白</div>
+                                    <span>白泽</span>
+                                </div>
+                            </td>
+                            <td>公共报表</td>
+                            <td>Viewer</td>
+                            <td><span class="type-badge view">查看</span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="platform-cell">
+                                    <div class="platform-mini-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">白</div>
+                                    <span>白泽</span>
+                                </div>
+                            </td>
+                            <td>学习业务线</td>
+                            <td>Editor</td>
+                            <td><span class="type-badge edit">编辑</span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="platform-cell">
+                                    <div class="platform-mini-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">指</div>
+                                    <span>指标中心</span>
+                                </div>
+                            </td>
+                            <td>大学情指标</td>
+                            <td>Viewer</td>
+                            <td><span class="type-badge view">查看</span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="platform-cell">
+                                    <div class="platform-mini-icon" style="background: linear-gradient(135deg, #10b981, #059669);">数</div>
+                                    <span>数据看板</span>
+                                </div>
+                            </td>
+                            <td>大学情看板</td>
+                            <td>Viewer</td>
+                            <td><span class="type-badge view">查看</span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="platform-cell">
+                                    <div class="platform-mini-icon" style="background: linear-gradient(135deg, #10b981, #059669);">数</div>
+                                    <span>数据看板</span>
+                                </div>
+                            </td>
+                            <td>学习分析</td>
+                            <td>Data Analyst</td>
+                            <td><span class="type-badge analyze">分析</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 交互说明弹窗 -->
+    <div class="help-modal" id="helpModal">
+        <div class="help-content">
+            <div class="help-header">
+                <span class="help-title">用户权限管理 - 交互说明</span>
+                <button class="help-close" onclick="closeHelpModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="help-body">
+                <h4>页面布局</h4>
+                <ul>
+                    <li>顶部导航栏：包含Logo、导航菜单、用户信息</li>
+                    <li>左侧侧边栏：权限中心模块导航，包含"我的权限"、"审批管理"、"系统管理"三个分组</li>
+                    <li>右侧主内容区：用户权限管理表格及相关操作</li>
+                </ul>
+
+                <h4>用户状态</h4>
+                <ul>
+                    <li><strong>正常</strong>：用户在职且状态正常</li>
+                    <li><strong>已离职</strong>：用户已离职，头像显示为红色</li>
+                    <li><strong>转岗</strong>：用户已转岗，头像显示为橙色，需确认权限是否需要调整</li>
+                </ul>
+
+                <h4>权限状态</h4>
+                <ul>
+                    <li><strong>有权限</strong>：用户在至少一个平台拥有权限</li>
+                    <li><strong>无权限</strong>：用户在所有平台均无权限</li>
+                </ul>
+
+                <h4>操作说明</h4>
+                <ul>
+                    <li><strong>查看权限</strong>：点击可查看用户在各平台、产品线的详细权限信息</li>
+                    <li><strong>分配权限</strong>：点击打开右侧抽屉，可选择平台、产品线、角色进行权限分配</li>
+                    <li><strong>回收权限</strong>：仅对离职/转岗且有权限的用户显示，点击后确认回收权限</li>
+                    <li><strong>批量分配权限</strong>：
+                        <ul class="sub-list">
+                            <li>勾选表格左侧的复选框可选择多个用户</li>
+                            <li>表头复选框可一键全选/取消全选当前页用户</li>
+                            <li>选择用户后底部出现批量操作栏，点击"批量分配权限"</li>
+                            <li>在批量分配抽屉中选择平台、产品线和角色</li>
+                            <li>所有选中用户将获得相同的权限</li>
+                            <li>分配成功后通过i讯飞通知所有用户</li>
+                        </ul>
+                    </li>
+                </ul>
+
+                <h4>筛选功能</h4>
+                <ul>
+                    <li>支持按用户姓名、域账号搜索</li>
+                    <li>支持按平台筛选（白泽、指标中心、数据看板）</li>
+                    <li>支持按权限状态筛选（有权限、无权限）</li>
+                </ul>
+
+                <h4>特殊场景处理</h4>
+                <ul>
+                    <li>离职用户有权限时，系统提示管理员回收权限</li>
+                    <li>转岗用户有权限时，系统提示管理员确认权限是否需要调整</li>
+                    <li>离职且无权限的用户，显示"无需处理"</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 回收权限确认弹窗 -->
+    <div class="revoke-modal" id="revokeModal">
+        <div class="revoke-content">
+            <div class="revoke-title">确认回收权限</div>
+            <div class="revoke-text" id="revokeText">用户 李四(lisi) 已离职，当前有权限。回收后用户将无法访问相关平台，是否确认回收？</div>
+            <div class="revoke-actions">
+                <button class="revoke-btn" onclick="closeRevokeModal()">取消</button>
+                <button class="revoke-btn danger" onclick="confirmRevoke()">确认回收</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openHelpModal() {
+            document.getElementById('helpModal').classList.add('open');
+        }
+
+        function closeHelpModal() {
+            document.getElementById('helpModal').classList.remove('open');
+        }
+
+        function openAssignDrawer(name, account) {
+            document.getElementById('assignAvatar').textContent = name.charAt(0);
+            document.getElementById('assignName').textContent = name;
+            document.getElementById('assignAccount').textContent = account;
+            document.getElementById('drawerOverlay').classList.add('open');
+            document.getElementById('assignDrawer').classList.add('open');
+        }
+
+        function closeDrawer() {
+            document.getElementById('drawerOverlay').classList.remove('open');
+            document.getElementById('assignDrawer').classList.remove('open');
+        }
+
+        function selectPlatform(btn, platform) {
+            btn.parentElement.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            // 根据平台更新产品线列表
+            updateProductLines(platform);
+        }
+
+        function updateProductLines(platform) {
+            const container = document.getElementById('productLineSelect');
+            let productLines = [];
+            if (platform === 'baize') {
+                productLines = ['学习业务线', '教育业务线', '公共报表'];
+            } else if (platform === 'indicator') {
+                productLines = ['大学情指标', '学习指标', '公共指标'];
+            } else if (platform === 'dashboard') {
+                productLines = ['大学情看板', '学习分析', '公共看板'];
+            }
+            container.innerHTML = productLines.map((line, index) =>
+                `<button class="platform-btn ${index === 0 ? 'active' : ''}" onclick="selectProductLine(this, '${line}')">${line}</button>`
+            ).join('');
+        }
+
+        function selectProductLine(btn, line) {
+            btn.parentElement.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function toggleRole(item) {
+            const checkbox = item.querySelector('.role-checkbox');
+            checkbox.classList.toggle('checked');
+        }
+
+        function submitAssign() {
+            const selectedRoles = [];
+            document.querySelectorAll('.role-item .role-checkbox.checked').forEach(cb => {
+                const roleName = cb.closest('.role-item').querySelector('.role-name').textContent;
+                selectedRoles.push(roleName);
+            });
+            if (selectedRoles.length === 0) {
+                alert('请选择要分配的角色');
+                return;
+            }
+            alert('权限分配成功，已分配角色：' + selectedRoles.join(', ') + '。已通过i讯飞通知用户');
+            closeDrawer();
+        }
+
+        function viewPermissions(name, account, hasPermission) {
+            document.getElementById('viewAvatar').textContent = name.charAt(0);
+            document.getElementById('viewName').textContent = name;
+            document.getElementById('viewAccount').textContent = account;
+
+            if (hasPermission) {
+                document.getElementById('viewModal').classList.add('open');
+            } else {
+                // 无权限用户，显示提示
+                document.querySelector('.view-body').innerHTML = `
+                    <div class="view-user-info">
+                        <div class="view-user-avatar">${name.charAt(0)}</div>
+                        <div>
+                            <div class="assign-name">${name}</div>
+                            <div class="assign-dept">${account}</div>
+                        </div>
+                    </div>
+                    <div class="no-permission-tip">
+                        <div class="no-permission-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                        </div>
+                        <div>该用户暂无任何平台权限</div>
+                    </div>
+                `;
+                document.getElementById('viewModal').classList.add('open');
+            }
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.remove('open');
+            // 恢复有权限时的表格内容结构
+            document.querySelector('.view-body').innerHTML = `
+                <div class="view-user-info">
+                    <div class="view-user-avatar" id="viewAvatar">张</div>
+                    <div>
+                        <div class="assign-name" id="viewName">张三</div>
+                        <div class="assign-dept" id="viewAccount">zhangsan</div>
+                    </div>
+                </div>
+
+                <table class="permission-table">
+                    <thead>
+                        <tr>
+                            <th>平台</th>
+                            <th>产品线</th>
+                            <th>角色</th>
+                            <th>权限类型</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="platform-cell">
+                                    <div class="platform-mini-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">白</div>
+                                    <span>白泽</span>
+                                </div>
+                            </td>
+                            <td>公共报表</td>
+                            <td>Viewer</td>
+                            <td><span class="type-badge view">查看</span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="platform-cell">
+                                    <div class="platform-mini-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">白</div>
+                                    <span>白泽</span>
+                                </div>
+                            </td>
+                            <td>学习业务线</td>
+                            <td>Editor</td>
+                            <td><span class="type-badge edit">编辑</span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="platform-cell">
+                                    <div class="platform-mini-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">指</div>
+                                    <span>指标中心</span>
+                                </div>
+                            </td>
+                            <td>大学情指标</td>
+                            <td>Viewer</td>
+                            <td><span class="type-badge view">查看</span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="platform-cell">
+                                    <div class="platform-mini-icon" style="background: linear-gradient(135deg, #10b981, #059669);">数</div>
+                                    <span>数据看板</span>
+                                </div>
+                            </td>
+                            <td>大学情看板</td>
+                            <td>Viewer</td>
+                            <td><span class="type-badge view">查看</span></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="platform-cell">
+                                    <div class="platform-mini-icon" style="background: linear-gradient(135deg, #10b981, #059669);">数</div>
+                                    <span>数据看板</span>
+                                </div>
+                            </td>
+                            <td>学习分析</td>
+                            <td>Data Analyst</td>
+                            <td><span class="type-badge analyze">分析</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function revokePermissions(name, account, reason) {
+            document.getElementById('revokeText').textContent =
+                `用户 ${name}(${account}) 已${reason}，当前有权限。回收后用户将无法访问相关平台，是否确认回收？回收后用户将变为无权限状态。`;
+            document.getElementById('revokeModal').classList.add('open');
+        }
+
+        function closeRevokeModal() {
+            document.getElementById('revokeModal').classList.remove('open');
+        }
+
+        function confirmRevoke() {
+            alert('权限已回收，用户已变为无权限状态。已通过i讯飞通知相关人员');
+            closeRevokeModal();
+        }
+
+        document.getElementById('drawerOverlay').addEventListener('click', function() {
+            closeDrawer();
+            closeBatchDrawer();
+        });
+
+        function filterByPlatform() {
+            const platform = document.getElementById('platformFilter').value;
+            // 实际项目中这里会调用API重新获取数据
+            console.log('筛选平台:', platform);
+        }
+
+        function filterByPermission() {
+            const status = document.getElementById('permissionFilter').value;
+            // 实际项目中这里会调用API重新获取数据
+            console.log('筛选权限状态:', status);
+        }
+
+        // 批量选择相关函数
+        let selectedUsers = [];
+
+        function toggleRowCheckbox(checkbox) {
+            const row = checkbox.closest('tr');
+            checkbox.classList.toggle('checked');
+            updateSelectedUsers();
+            updateBatchActionBar();
+            updateHeaderCheckbox();
+        }
+
+        function toggleAllCheckbox(headerCheckbox) {
+            const isChecked = headerCheckbox.classList.contains('checked');
+            const allCheckboxes = document.querySelectorAll('.user-table tbody .batch-checkbox');
+
+            if (isChecked) {
+                headerCheckbox.classList.remove('checked');
+                allCheckboxes.forEach(cb => cb.classList.remove('checked'));
+            } else {
+                headerCheckbox.classList.add('checked');
+                allCheckboxes.forEach(cb => cb.classList.add('checked'));
+            }
+            updateSelectedUsers();
+            updateBatchActionBar();
+        }
+
+        function updateSelectedUsers() {
+            selectedUsers = [];
+            const checkedRows = document.querySelectorAll('.user-table tbody tr');
+            checkedRows.forEach(row => {
+                const checkbox = row.querySelector('.batch-checkbox');
+                if (checkbox && checkbox.classList.contains('checked')) {
+                    selectedUsers.push({
+                        name: row.dataset.name,
+                        account: row.dataset.account
+                    });
+                }
+            });
+        }
+
+        function updateBatchActionBar() {
+            const bar = document.getElementById('batchActionBar');
+            const countEl = document.getElementById('selectedCount');
+            if (selectedUsers.length > 0) {
+                bar.classList.add('visible');
+                countEl.textContent = selectedUsers.length;
+            } else {
+                bar.classList.remove('visible');
+            }
+        }
+
+        function updateHeaderCheckbox() {
+            const headerCheckbox = document.querySelector('.user-table thead .batch-checkbox');
+            const allCheckboxes = document.querySelectorAll('.user-table tbody .batch-checkbox');
+            const checkedCount = document.querySelectorAll('.user-table tbody .batch-checkbox.checked').length;
+
+            if (checkedCount === 0) {
+                headerCheckbox.classList.remove('checked');
+            } else if (checkedCount === allCheckboxes.length) {
+                headerCheckbox.classList.add('checked');
+            } else {
+                headerCheckbox.classList.remove('checked');
+            }
+        }
+
+        function clearAllSelection() {
+            const allCheckboxes = document.querySelectorAll('.batch-checkbox');
+            allCheckboxes.forEach(cb => cb.classList.remove('checked'));
+            selectedUsers = [];
+            updateBatchActionBar();
+        }
+
+        function openBatchAssignDrawer() {
+            if (selectedUsers.length === 0) {
+                alert('请先选择要分配权限的用户');
+                return;
+            }
+
+            // 更新用户列表显示
+            const usersListEl = document.getElementById('batchUsersList');
+            usersListEl.innerHTML = selectedUsers.map(user => `
+                <div class="batch-user-item">
+                    <div class="batch-user-avatar">${user.name.charAt(0)}</div>
+                    <div>
+                        <div class="batch-user-name">${user.name}</div>
+                        <div class="batch-user-account">${user.account}</div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('batchUserCount').textContent = selectedUsers.length;
+
+            // 重置角色选择状态
+            const roleCheckboxes = document.querySelectorAll('#batchRoleList .role-checkbox');
+            roleCheckboxes.forEach(cb => cb.classList.remove('checked'));
+
+            document.getElementById('drawerOverlay').classList.add('open');
+            document.getElementById('batchAssignDrawer').classList.add('open');
+        }
+
+        function closeBatchDrawer() {
+            document.getElementById('drawerOverlay').classList.remove('open');
+            document.getElementById('batchAssignDrawer').classList.remove('open');
+        }
+
+        function selectBatchPlatform(btn, platform) {
+            btn.parentElement.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            updateBatchProductLines(platform);
+        }
+
+        function updateBatchProductLines(platform) {
+            const container = document.getElementById('batchProductLineSelect');
+            let productLines = [];
+            if (platform === 'baize') {
+                productLines = ['学习业务线', '教育业务线', '公共报表'];
+            } else if (platform === 'indicator') {
+                productLines = ['大学情指标', '学习指标', '公共指标'];
+            } else if (platform === 'dashboard') {
+                productLines = ['大学情看板', '学习分析', '公共看板'];
+            }
+            container.innerHTML = productLines.map((line, index) =>
+                `<button class="platform-btn ${index === 0 ? 'active' : ''}" onclick="selectBatchProductLine(this, '${line}')">${line}</button>`
+            ).join('');
+        }
+
+        function selectBatchProductLine(btn, line) {
+            btn.parentElement.querySelectorAll('.platform-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function toggleBatchRole(item) {
+            const checkbox = item.querySelector('.role-checkbox');
+            checkbox.classList.toggle('checked');
+        }
+
+        function submitBatchAssign() {
+            const selectedRoles = [];
+            document.querySelectorAll('#batchRoleList .role-checkbox.checked').forEach(cb => {
+                const roleName = cb.closest('.role-item').querySelector('.role-name').textContent;
+                selectedRoles.push(roleName);
+            });
+
+            if (selectedRoles.length === 0) {
+                alert('请选择要分配的角色');
+                return;
+            }
+
+            const userNames = selectedUsers.map(u => u.name).join(', ');
+            alert(`已为 ${selectedUsers.length} 位用户（${userNames}）分配角色：${selectedRoles.join(', ')}。已通过i讯飞通知所有用户`);
+            closeBatchDrawer();
+            clearAllSelection();
+        }
+    </script>
+</body>
+</html>

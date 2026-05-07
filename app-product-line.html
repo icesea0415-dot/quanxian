@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>应用与产品线管理 - 数智门户</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-bg: #eff6ff;
+            --bg: #f5f7fa;
+            --surface: #ffffff;
+            --border: #e5e7eb;
+            --border-light: #f3f4f6;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --success: #10b981;
+            --success-bg: #ecfdf5;
+            --danger: #ef4444;
+            --danger-bg: #fef2f2;
+            --warning: #f59e0b;
+            --warning-bg: #fef3c7;
+            --purple: #8b5cf6;
+            --purple-bg: #f5f3ff;
+            --cyan: #06b6d4;
+            --cyan-bg: #ecfeff;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+            --transition: all 0.2s;
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif; background: var(--bg); min-height: 100vh; }
+        .page-container { display: flex; min-height: 100vh; }
+        .header {
+            height: 56px; background: var(--surface); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
+            position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+        }
+        .logo { display: flex; align-items: center; font-size: 17px; font-weight: 700; color: var(--text-primary); text-decoration: none; }
+        .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius: 6px; margin-right: 10px; display: flex; align-items: center; justify-content: center; color: #fff; }
+        .nav-menu { display: flex; gap: 2px; background: rgba(0,0,0,0.04); padding: 4px; border-radius: 10px; }
+        .nav-item { padding: 8px 18px; border-radius: 8px; font-size: 15px; font-weight: 600; color: var(--text-secondary); text-decoration: none; }
+        .nav-item:hover { color: var(--text-primary); }
+        .nav-item.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow); }
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .user-info { display: flex; align-items: center; gap: 10px; padding: 5px 12px 5px 5px; }
+        .user-avatar { width: 28px; height: 28px; background: linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 600; }
+        .sidebar { width: 220px; background: var(--surface); border-right: 1px solid var(--border); position: fixed; top: 56px; left: 0; bottom: 0; padding: 16px 12px; }
+        .sidebar-group { margin-bottom: 16px; }
+        .sidebar-group-title { padding: 8px 12px; font-size: 11px; color: var(--text-muted); font-weight: 600; }
+        .sidebar-item { display: flex; align-items: center; padding: 9px 12px; font-size: 13.5px; font-weight: 500; color: var(--text-secondary); text-decoration: none; border-radius: var(--radius-sm); gap: 10px; transition: var(--transition); }
+        .sidebar-item:hover { background: var(--border-light); }
+        .sidebar-item.active { background: var(--primary-bg); color: var(--primary); }
+        .sidebar-item .icon { width: 20px; height: 20px; }
+        .sidebar-item .icon svg { width: 18px; height: 18px; }
+        .main-content { flex: 1; margin-left: 220px; padding: 80px 24px 24px; }
+
+        .page-header { display: flex; justify-content: space-between; margin-bottom: 24px; }
+        .page-title { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+        .page-breadcrumb { font-size: 13px; color: var(--text-muted); }
+        .page-breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+        .btn { padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 6px; transition: var(--transition); }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+        /* 表格样式 */
+        .table-container {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        .table-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .table-title { font-size: 16px; font-weight: 600; }
+        .table-actions { display: flex; gap: 8px; }
+        .table-btn { padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; transition: var(--transition); }
+        .table-btn.primary { background: var(--primary); color: #fff; border: none; }
+        .table-btn.default { background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border); }
+
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+        }
+        .data-table td {
+            padding: 14px 16px;
+            font-size: 14px;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-light);
+        }
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:hover td { background: var(--border-light); }
+
+        /* 状态标签 */
+        .status-tag {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-tag.enabled {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+        .status-tag.disabled {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+
+        /* 操作按钮 */
+        .action-btns { display: flex; gap: 8px; }
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text-secondary);
+        }
+        .action-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .action-btn.primary { background: var(--primary); color: #fff; border: none; }
+        .action-btn.warning { background: var(--warning-bg); color: var(--warning); border: 1px solid transparent; }
+        .action-btn.danger { background: var(--danger-bg); color: var(--danger); border: 1px solid transparent; }
+
+        /* Owner显示 */
+        .owner-cell { display: flex; align-items: center; gap: 8px; }
+        .owner-avatar { width: 24px; height: 24px; border-radius: 6px; background: var(--primary-bg); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--primary); }
+        .owner-empty { color: var(--text-muted); font-size: 13px; }
+
+        /* 关联详情弹窗 */
+        .detail-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 300; opacity: 0; visibility: hidden; transition: var(--transition); }
+        .detail-modal.open { opacity: 1; visibility: visible; }
+        .detail-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 500px; max-width: 90vw; max-height: 80vh; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-md); overflow: hidden; }
+        .detail-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .detail-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+        .detail-close { width: 32px; height: 32px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: var(--transition); }
+        .detail-close:hover { background: var(--bg); }
+        .detail-close svg { width: 18px; height: 18px; color: var(--text-secondary); }
+        .detail-body { padding: 20px; max-height: calc(80vh - 60px); overflow-y: auto; }
+
+        .platform-section { margin-bottom: 16px; border: 1px solid var(--border-light); border-radius: var(--radius-sm); overflow: hidden; }
+        .platform-header { padding: 12px 16px; background: var(--bg); display: flex; align-items: center; gap: 12px; }
+        .platform-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; font-weight: 600; }
+        .platform-name { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+        .platform-body { padding: 16px; }
+        .product-line-list { display: flex; flex-direction: column; gap: 8px; }
+        .product-line-item { padding: 10px 14px; background: var(--border-light); border-radius: 6px; font-size: 13px; color: var(--text-secondary); }
+        .product-line-item:hover { background: var(--primary-bg); color: var(--primary); }
+
+        /* 新建/编辑应用抽屉 */
+        .drawer { position: fixed; top: 0; right: -680px; width: 680px; height: 100vh; background: var(--surface); box-shadow: -4px 0 20px rgba(0,0,0,0.1); z-index: 200; transition: right 0.3s; }
+        .drawer.open { right: 0; }
+        .drawer-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 150; opacity: 0; visibility: hidden; transition: all 0.3s; }
+        .drawer-overlay.open { opacity: 1; visibility: visible; }
+        .drawer-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .drawer-title { font-size: 16px; font-weight: 600; }
+        .drawer-close { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); }
+        .drawer-close:hover { background: var(--border-light); }
+        .drawer-body { padding: 20px; overflow-y: auto; height: calc(100vh - 130px); }
+
+        .form-group { margin-bottom: 16px; }
+        .form-label { font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 8px; display: block; }
+        .form-label.required::after { content: '*'; color: var(--danger); margin-left: 4px; }
+        .form-hint { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        .form-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+        .form-input:focus { outline: none; border-color: var(--primary); }
+        .form-select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: var(--surface); cursor: pointer; }
+        .form-row { display: flex; gap: 12px; }
+        .form-row .form-group { flex: 1; }
+
+        /* 状态选择 */
+        .status-select { display: flex; gap: 12px; }
+        .status-option { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: var(--transition); }
+        .status-option:hover { border-color: var(--primary); }
+        .status-option.selected { background: var(--primary-bg); border-color: var(--primary); color: var(--primary); }
+        .status-option input { display: none; }
+
+        /* 平台产品线选择 */
+        .platform-select-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 12px; background: var(--bg); }
+        .platform-select-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .platform-checkbox { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .platform-checkbox input { width: 18px; height: 18px; cursor: pointer; }
+        .platform-checkbox-label { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+        .product-line-checkboxes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-light); }
+        .product-line-checkbox { display: flex; align-items: center; gap: 6px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); cursor: pointer; font-size: 13px; transition: var(--transition); }
+        .product-line-checkbox:hover { border-color: var(--primary); }
+        .product-line-checkbox.selected { background: var(--primary-bg); border-color: var(--primary); color: var(--primary); }
+        .product-line-checkbox input { width: 16px; height: 16px; cursor: pointer; }
+        .product-line-checkbox.disabled { opacity: 0.5; cursor: not-allowed; background: var(--border-light); }
+        .product-line-checkbox.disabled input { cursor: not-allowed; }
+
+        /* Owner选择 */
+        .owner-select { padding: 10px 12px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 8px; }
+        .owner-select:hover { border-color: var(--primary); }
+        .owner-select-placeholder { color: var(--text-muted); font-size: 13px; }
+        .owner-select-value { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-primary); }
+        .owner-select-avatar { width: 24px; height: 24px; border-radius: 6px; background: var(--primary-bg); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--primary); }
+
+        .drawer-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; }
+        .drawer-footer .btn { padding: 8px 20px; }
+        .btn-cancel { background: var(--bg); border: 1px solid var(--border); color: var(--text-secondary); }
+
+        /* 交互说明弹窗 */
+        .help-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 300; opacity: 0; visibility: hidden; transition: var(--transition); }
+        .help-modal.open { opacity: 1; visibility: visible; }
+        .help-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 600px; max-width: 90vw; max-height: 80vh; background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-md); overflow: hidden; }
+        .help-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .help-title { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+        .help-close { width: 32px; height: 32px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; border-radius: 6px; transition: var(--transition); }
+        .help-close:hover { background: var(--bg); }
+        .help-close svg { width: 18px; height: 18px; color: var(--text-secondary); }
+        .help-body { padding: 20px; max-height: calc(80vh - 60px); overflow-y: auto; font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+        .help-body h4 { font-size: 15px; font-weight: 600; color: var(--text-primary); margin: 16px 0 8px 0; }
+        .help-body h4:first-child { margin-top: 0; }
+        .help-body ul { margin: 8px 0; padding-left: 20px; }
+        .help-body li { margin: 6px 0; }
+        .help-body .sub-list { padding-left: 16px; list-style-type: circle; }
+        .help-btn { padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; transition: var(--transition); }
+        .help-btn:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-bg); }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a href="index.html" class="logo"><div class="logo-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>数智门户</a>
+        <nav class="nav-menu">
+            <a href="https://dcpadmin.changyan.com/" class="nav-item" target="_blank">数据采集</a>
+            <div class="nav-item">指标中心</div>
+            <a href="index.html" class="nav-item">数据看板</a>
+            <div class="nav-item active">权限中心</div>
+        </nav>
+        <div class="header-right"><div class="user-info"><div class="user-avatar">管</div><span class="user-name">管理员</span></div></div>
+    </header>
+
+    <div class="page-container">
+        <aside class="sidebar">
+            <div class="sidebar-group">
+                <div class="sidebar-group-title">我的权限</div>
+                <a href="my-permission.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>我的权限</a>
+                <a href="permission-apply.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/></svg></span>权限申请</a>
+                <a href="application-list.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></span>申请记录</a>
+            </div>
+            <div class="sidebar-group">
+                <div class="sidebar-group-title">审批管理</div>
+                <a href="approval-manage.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/></svg></span>审批管理</a>
+                <a href="approval-flow-config.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>审批流程配置</a>
+            </div>
+            <div class="sidebar-group">
+                <div class="sidebar-group-title">系统管理</div>
+                <a href="app-product-line.html" class="sidebar-item active"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/></svg></span>应用与产品线管理</a>
+                <a href="user-permission-manage.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>用户权限管理</a>
+                <a href="operation-log.html" class="sidebar-item"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg></span>操作日志</a>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header">
+                <div>
+                    <h1 class="page-title">应用与产品线管理</h1>
+                    <div class="page-breadcrumb"><a href="index.html">首页</a> / <a href="index.html">权限中心</a> / <span>应用与产品线管理</span></div>
+                </div>
+                <button class="help-btn" onclick="openHelpModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    交互说明
+                </button>
+            </div>
+
+            <!-- 表格展示 -->
+            <div class="table-container">
+                <div class="table-header">
+                    <div class="table-title">应用列表</div>
+                    <div class="table-actions">
+                        <button class="table-btn primary" onclick="openDrawer()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            新增应用
+                        </button>
+                    </div>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>应用名称</th>
+                            <th>应用描述</th>
+                            <th>业务Owner</th>
+                            <th>数据Owner</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>大学情</td>
+                            <td>大学学习情况数据业务</td>
+                            <td>
+                                <div class="owner-cell">
+                                    <div class="owner-avatar">李</div>
+                                    <span>李四</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="owner-cell">
+                                    <div class="owner-avatar">王</div>
+                                    <span>王五</span>
+                                </div>
+                            </td>
+                            <td><span class="status-tag enabled">启用</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="action-btn" onclick="viewDetail('daxueqing')">查看关联</button>
+                                    <button class="action-btn primary" onclick="editApp('daxueqing')">编辑</button>
+                                    <button class="action-btn warning" onclick="toggleStatus('daxueqing', 'disabled')">禁用</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>大课堂</td>
+                            <td>在线课堂教育业务</td>
+                            <td>
+                                <div class="owner-cell">
+                                    <div class="owner-avatar">张</div>
+                                    <span>张三</span>
+                                </div>
+                            </td>
+                            <td><span class="owner-empty">未设置</span></td>
+                            <td><span class="status-tag enabled">启用</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="action-btn" onclick="viewDetail('daketang')">查看关联</button>
+                                    <button class="action-btn primary" onclick="editApp('daketang')">编辑</button>
+                                    <button class="action-btn warning" onclick="toggleStatus('daketang', 'disabled')">禁用</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>知识图谱</td>
+                            <td>知识图谱数据服务</td>
+                            <td><span class="owner-empty">未设置</span></td>
+                            <td>
+                                <div class="owner-cell">
+                                    <div class="owner-avatar">赵</div>
+                                    <span>赵六</span>
+                                </div>
+                            </td>
+                            <td><span class="status-tag disabled">禁用</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="action-btn" onclick="viewDetail('zhishu')">查看关联</button>
+                                    <button class="action-btn primary" onclick="editApp('zhishu')">编辑</button>
+                                    <button class="action-btn" onclick="toggleStatus('zhishu', 'enabled')">启用</button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>数据治理</td>
+                            <td>数据质量与治理管理</td>
+                            <td>
+                                <div class="owner-cell">
+                                    <div class="owner-avatar">陈</div>
+                                    <span>陈七</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="owner-cell">
+                                    <div class="owner-avatar">周</div>
+                                    <span>周八</span>
+                                </div>
+                            </td>
+                            <td><span class="status-tag enabled">启用</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="action-btn" onclick="viewDetail('shujuguanli')">查看关联</button>
+                                    <button class="action-btn primary" onclick="editApp('shujuguanli')">编辑</button>
+                                    <button class="action-btn warning" onclick="toggleStatus('shujuguanli', 'disabled')">禁用</button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- 关联详情弹窗 -->
+    <div class="detail-modal" id="detailModal">
+        <div class="detail-content">
+            <div class="detail-header">
+                <span class="detail-title">大学情 - 关联平台与产品线</span>
+                <button class="detail-close" onclick="closeDetailModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="detail-body">
+                <div class="platform-section">
+                    <div class="platform-header">
+                        <div class="platform-icon" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">白</div>
+                        <div class="platform-name">白泽</div>
+                    </div>
+                    <div class="platform-body">
+                        <div class="product-line-list">
+                            <div class="product-line-item">学习业务线</div>
+                            <div class="product-line-item">大学情报表</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="platform-section">
+                    <div class="platform-header">
+                        <div class="platform-icon" style="background: linear-gradient(135deg, #10b981, #059669);">数</div>
+                        <div class="platform-name">数据看板</div>
+                    </div>
+                    <div class="platform-body">
+                        <div class="product-line-list">
+                            <div class="product-line-item">大学情看板</div>
+                            <div class="product-line-item">学习分析</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="platform-section">
+                    <div class="platform-header">
+                        <div class="platform-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">指</div>
+                        <div class="platform-name">指标中心</div>
+                    </div>
+                    <div class="platform-body">
+                        <div class="product-line-list">
+                            <div class="product-line-item">大学情指标</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新建/编辑应用抽屉 -->
+    <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+    <div class="drawer" id="configDrawer">
+        <div class="drawer-header">
+            <span class="drawer-title" id="drawerTitle">新增应用</span>
+            <div class="drawer-close" onclick="closeDrawer()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+        </div>
+        <div class="drawer-body">
+            <div class="form-group">
+                <label class="form-label required">应用名称</label>
+                <input class="form-input" type="text" placeholder="请输入应用名称，如：大学情、大课堂" id="appName">
+                <div class="form-hint">应用用于描述组织或业务范围</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">应用描述</label>
+                <input class="form-input" type="text" placeholder="请输入应用描述" id="appDesc">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">应用状态</label>
+                <div class="status-select">
+                    <label class="status-option selected" onclick="selectStatus('enabled')">
+                        <input type="radio" name="status" value="enabled" checked>
+                        <span class="status-tag enabled">启用</span>
+                    </label>
+                    <label class="status-option" onclick="selectStatus('disabled')">
+                        <input type="radio" name="status" value="disabled">
+                        <span class="status-tag disabled">禁用</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">业务Owner</label>
+                    <div class="owner-select" onclick="openUserSelect('business')">
+                        <span class="owner-select-placeholder" id="businessOwnerPlaceholder">请选择业务Owner</span>
+                        <div class="owner-select-value" id="businessOwnerValue" style="display: none;">
+                            <div class="owner-select-avatar">李</div>
+                            <span>李四</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">数据Owner</label>
+                    <div class="owner-select" onclick="openUserSelect('data')">
+                        <span class="owner-select-placeholder" id="dataOwnerPlaceholder">请选择数据Owner</span>
+                        <div class="owner-select-value" id="dataOwnerValue" style="display: none;">
+                            <div class="owner-select-avatar">王</div>
+                            <span>王五</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">关联平台与产品线</label>
+                <div class="form-hint" style="margin-bottom: 12px;">选择应用需要关联的下游平台及其产品线。<strong style="color: var(--danger);">注意：一个平台的一个产品线只能属于一个应用，已被其他应用关联的产品线将显示为灰色不可选状态。</strong></div>
+
+                <div class="platform-select-card">
+                    <div class="platform-select-header">
+                        <label class="platform-checkbox">
+                            <input type="checkbox" id="platformBaize" onchange="togglePlatform('baize')">
+                            <div class="platform-checkbox-label">
+                                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                                    <span style="width: 24px; height: 24px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 12px;">白</span>
+                                    白泽
+                                </span>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="product-line-checkboxes" id="baizeProductLines" style="display: none;">
+                        <label class="product-line-checkbox"><input type="checkbox" value="learning"> 学习业务线</label>
+                        <label class="product-line-checkbox"><input type="checkbox" value="education"> 教育业务线</label>
+                        <label class="product-line-checkbox disabled"><input type="checkbox" value="public" disabled> 公共报表（已关联：数据治理）</label>
+                        <label class="product-line-checkbox"><input type="checkbox" value="university"> 大学情报表</label>
+                    </div>
+                </div>
+
+                <div class="platform-select-card">
+                    <div class="platform-select-header">
+                        <label class="platform-checkbox">
+                            <input type="checkbox" id="platformDashboard" onchange="togglePlatform('dashboard')">
+                            <div class="platform-checkbox-label">
+                                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                                    <span style="width: 24px; height: 24px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 12px;">数</span>
+                                    数据看板
+                                </span>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="product-line-checkboxes" id="dashboardProductLines" style="display: none;">
+                        <label class="product-line-checkbox"><input type="checkbox" value="university"> 大学情看板</label>
+                        <label class="product-line-checkbox"><input type="checkbox" value="learning"> 学习分析</label>
+                        <label class="product-line-checkbox disabled"><input type="checkbox" value="public" disabled> 公共看板（已关联：大课堂）</label>
+                    </div>
+                </div>
+
+                <div class="platform-select-card">
+                    <div class="platform-select-header">
+                        <label class="platform-checkbox">
+                            <input type="checkbox" id="platformIndicator" onchange="togglePlatform('indicator')">
+                            <div class="platform-checkbox-label">
+                                <span style="display: inline-flex; align-items: center; gap: 8px;">
+                                    <span style="width: 24px; height: 24px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 12px;">指</span>
+                                    指标中心
+                                </span>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="product-line-checkboxes" id="indicatorProductLines" style="display: none;">
+                        <label class="product-line-checkbox"><input type="checkbox" value="university"> 大学情指标</label>
+                        <label class="product-line-checkbox"><input type="checkbox" value="learning"> 学习指标</label>
+                        <label class="product-line-checkbox"><input type="checkbox" value="public"> 公共指标</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="drawer-footer">
+            <button class="btn btn-cancel" onclick="closeDrawer()">取消</button>
+            <button class="btn btn-primary" onclick="saveApp()">保存</button>
+        </div>
+    </div>
+
+    <!-- 交互说明弹窗 -->
+    <div class="help-modal" id="helpModal">
+        <div class="help-content">
+            <div class="help-header">
+                <span class="help-title">应用与产品线管理 - 交互说明</span>
+                <button class="help-close" onclick="closeHelpModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="help-body">
+                <h4>页面布局</h4>
+                <ul>
+                    <li>表格形式展示应用列表，包含：应用名称、应用描述、业务Owner、数据Owner、状态、操作按钮</li>
+                    <li>点击"查看关联"按钮 → 弹窗展示该应用关联的平台和产品线详情</li>
+                </ul>
+
+                <h4>核心概念</h4>
+                <ul>
+                    <li><strong>应用</strong>：描述组织或业务范围的实体（如"大学情"、"大课堂"）</li>
+                    <li><strong>产品线</strong>：下游平台定义的业务线（如"学习业务线"、"教育业务线"）</li>
+                    <li><strong>关系</strong>：应用与产品线为 1:N 关系，一个应用可关联多个平台的多个产品线</li>
+                    <li><strong>唯一性约束</strong>：一个平台的一个产品线只能属于一个应用，不能关联多个应用</li>
+                </ul>
+
+                <h4>应用状态</h4>
+                <ul>
+                    <li>每个应用有<strong>启用</strong>和<strong>禁用</strong>两种状态</li>
+                    <li>应用创建后默认为"启用"状态</li>
+                    <li>禁用状态下，应用相关的审批流程暂停使用</li>
+                    <li><strong>应用不可删除</strong>，只能通过禁用/启用切换状态</li>
+                </ul>
+
+                <h4>新增应用</h4>
+                <ul>
+                    <li>点击"新增应用"按钮 → 打开新建应用抽屉</li>
+                    <li>填写应用名称（必填）、应用描述、应用状态（必选，默认启用）</li>
+                    <li>选择业务Owner和数据Owner（通过用户选择器，可为空）</li>
+                    <li>关联平台与产品线：
+                        <ul class="sub-list">
+                            <li>勾选平台复选框 → 展开该平台下的产品线选项</li>
+                            <li>勾选产品线（支持多选）</li>
+                            <li>取消勾选平台 → 清除该平台下的所有产品线选择</li>
+                            <li><strong style="color: var(--danger);">已被其他应用关联的产品线显示为灰色不可选状态</strong></li>
+                        </ul>
+                    </li>
+                    <li>点击"保存" → 创建应用并关联产品线</li>
+                </ul>
+
+                <h4>编辑应用</h4>
+                <ul>
+                    <li>点击"编辑"按钮 → 打开编辑应用抽屉</li>
+                    <li>加载当前应用数据，可修改所有配置</li>
+                    <li>点击"保存" → 更新应用配置</li>
+                </ul>
+
+                <h4>查看关联</h4>
+                <ul>
+                    <li>点击"查看关联"按钮 → 弹窗展示该应用关联的平台和产品线</li>
+                    <li>按平台分组展示，每个平台下显示关联的产品线列表</li>
+                </ul>
+
+                <h4>启用/禁用应用</h4>
+                <ul>
+                    <li>启用状态的应用：显示"禁用"按钮，点击后应用变为禁用状态</li>
+                    <li>禁用状态的应用：显示"启用"按钮，点击后应用变为启用状态</li>
+                    <li>切换状态时弹出确认提示</li>
+                </ul>
+
+                <h4>用户选择器交互</h4>
+                <ul>
+                    <li>点击Owner选择框 → 打开用户选择弹窗/下拉</li>
+                    <li>支持搜索用户（姓名或域账号）</li>
+                    <li>选择用户后显示头像和姓名</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openHelpModal() {
+            document.getElementById('helpModal').classList.add('open');
+        }
+
+        function closeHelpModal() {
+            document.getElementById('helpModal').classList.remove('open');
+        }
+
+        function viewDetail(appId) {
+            document.getElementById('detailModal').classList.add('open');
+            // 可根据appId加载不同的关联详情
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('open');
+        }
+
+        function openDrawer() {
+            document.getElementById('drawerOverlay').classList.add('open');
+            document.getElementById('configDrawer').classList.add('open');
+            document.getElementById('drawerTitle').textContent = '新增应用';
+            // 重置表单
+            document.getElementById('appName').value = '';
+            document.getElementById('appDesc').value = '';
+            selectStatus('enabled');
+        }
+
+        function closeDrawer() {
+            document.getElementById('drawerOverlay').classList.remove('open');
+            document.getElementById('configDrawer').classList.remove('open');
+        }
+
+        function editApp(appId) {
+            openDrawer();
+            document.getElementById('drawerTitle').textContent = '编辑应用';
+            // 根据appId加载对应应用数据
+        }
+
+        function toggleStatus(appId, newStatus) {
+            const actionText = newStatus === 'enabled' ? '启用' : '禁用';
+            if (confirm(`确认${actionText}该应用？`)) {
+                alert(`应用已${actionText}`);
+                // 这里可以更新表格中的状态显示
+            }
+        }
+
+        function selectStatus(status) {
+            document.querySelectorAll('.status-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+        }
+
+        function togglePlatform(platform) {
+            const checkbox = document.getElementById('platform' + platform.charAt(0).toUpperCase() + platform.slice(1));
+            const productLinesDiv = document.getElementById(platform + 'ProductLines');
+            if (checkbox.checked) {
+                productLinesDiv.style.display = '';
+            } else {
+                productLinesDiv.style.display = 'none';
+                // 清除所有产品线选择（排除disabled的）
+                productLinesDiv.querySelectorAll('input:not([disabled])').forEach(input => input.checked = false);
+                productLinesDiv.querySelectorAll('.product-line-checkbox:not(.disabled)').forEach(label => label.classList.remove('selected'));
+            }
+        }
+
+        function openUserSelect(type) {
+            // 这里可以弹出用户选择对话框
+            alert('打开用户选择器');
+        }
+
+        function saveApp() {
+            const appName = document.getElementById('appName').value;
+            if (!appName) {
+                alert('请输入应用名称');
+                return;
+            }
+            alert('应用已保存');
+            closeDrawer();
+        }
+
+        // 产品线复选框点击样式
+        document.querySelectorAll('.product-line-checkbox:not(.disabled)').forEach(label => {
+            const checkbox = label.querySelector('input');
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    label.classList.add('selected');
+                } else {
+                    label.classList.remove('selected');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
